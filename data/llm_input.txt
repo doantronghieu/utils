@@ -1,0 +1,481 @@
+# Python Programming Specificities
+
+The Python language was designed to emphasize code readability. As such, it provides syntaxes and constructs that allow developers to quickly express complex concepts in a few readable lines. This makes it quite different from other programming languages.
+
+The goal of this chapter is thus to get you acquainted with its specificities, but we expect you already have some experience with programming. We’ll first get started with the basics of the language, the standard types, and the flow control syntaxes. You’ll also be introduced to the list comprehension and generator concepts, which are very powerful ways to go through and transform sequences of data. You’ll also see that Python can be used as an object-oriented language, still through a very lightweight yet powerful syntax. Before moving on, we’ll also review the concepts of type hinting and asynchronous I/O, which are quite new in Python but are at the core of the FastAPI framework.
+
+In this chapter, we’re going to cover the following main topics:
+Basics of Python programming
+List comprehensions and generators
+Classes and objects
+Type hinting and type checking with mypy
+Asynchronous I/O
+
+## Basics of Python programming
+
+First of all, let’s review some of the key aspects of Python:
+It’s an interpreted language. Contrary to languages such as C or Java, it doesn’t need to be compiled, which allows us to run Python code interactively.
+It’s dynamically typed. The type of values is determined at runtime.
+It supports several programming paradigms: procedural, object-oriented, and functional programming.
+This makes Python quite a versatile language, from simple automation scripts to complex data science projects.
+
+### Running Python scripts
+
+As we said, Python is an interpreted language. Hence, the simplest and quickest way to run some Python code is to launch an interactive shell. Just run the following command to start a session:
+This shell makes it very easy to run some simple statements and do some experiments:
+To exit the shell, use the Ctrl + D keyboard shortcut.
+
+Obviously, this can become tedious when you start to have more statements or if you just wish to keep your work to reuse it later. Python scripts are saved in files with the .py extension. Let’s create a file named chapter2_basics_01.py in our project directory and add this code:
+
+Quite simply, this script prints Hello world on the console, assigns the value 100 to a variable named x, and prints a string with the value of x and its double. To run it, simply add the path of your script as a parameter of the Python command:
+
+f-strings You have probably noticed the string starting with f. This syntax, called f-strings, is a very convenient and neat way to perform string interpolation. Within, you can simply insert variables between curly braces; they will automatically be converted into strings to build the resulting string. We’ll use it quite often in our examples.
+
+### Indentation matters
+
+One of the most iconic aspects of Python is that code blocks are not defined using curly braces like many other programming languages, but rather with whitespace indentation. This may sound a bit strange, but it’s at the heart of the readability philosophy of Python. Let’s see how you can write a script that finds the even numbers in a list:
+
+In this script, we define numbers, a list of numbers from 1 to 10, and even, an empty list that will contain the even numbers.
+Then, we define a for loop statement to go through each element of numbers. As you see, we open a block with a colon, :, break a line, and start writing the next statement with an indentation.
+The next line is a conditional statement to check the parity of the current number. Once again, we open a block with a colon, :, and write the next statement with an additional indentation level. This statement adds the even number to the even list.
+After that, the next statements are not intended. This means that we are out of the for loop block; they should be executed after the iteration is finished.
+
+Indentation style and size You can choose the indentation style (tabs or spaces) and size (2, 4, 6...) you prefer; the only constraint is that you should be consistent within a block. However, by convention, Python developers usually go for a four-space indentation.
+This aspect of Python may sound weird but with some practice, you’ll find that it enforces clear formatting and greatly improves the readability of your scripts.
+
+### Working with built-in types
+
+Python is quite conventional regarding scalar types. There are six of them:
+int, to store integer values, such as x = 1
+float, for floating-point numbers, such as x = 1.5
+complex, for complex numbers, such as x = 1 + 2j
+bool, for Boolean values, either True or False
+str, for string values, such as x = "abc"
+NoneType, to indicate null values, such as x = None
+Basics of Python programming
+
+It’s worth noting that Python is strongly typed, meaning that the interpreter will limit implicit type conversions. For example, trying to add an int value and a str value will raise an error, as you can see in the following example:
+Still, adding an int value and a float value will automatically upcast the result to float:
+As you may have noticed, Python is quite traditional regarding those standard types. Let’s see now how basic data structures are handled.
+
+### Working with data structures – lists, tuples, dictionaries, and sets
+
+Besides the scalar types, Python also provides handy data structures: an array structure, of course, called a list in Python, but also tuples, dictionaries, and sets, which are very convenient in lots of cases. Let’s start with lists.
+
+- Lists
+
+Lists are the equivalent in Python of the classic array structure. Defining a list is quite straightforward:
+As you see, wrapping a suite of elements in square brackets denotes a list. You can, of course, access single elements by index:
+It also supports negative indexing, which allows you to retrieve elements from the end of the list: the -1 index is the last element, -2 is the second last element, and so on:
+Another useful syntax is slicing, which quickly allows you to retrieve a sub-list:
+The first number is the start index (inclusive) and the second one is the end index (exclusive), separated by a colon. You can omit the first one; in this case, 0 is assumed:
+You can also omit the second one; in this case, the length of the list is assumed:
+Finally, this syntax also supports a third argument to specify the step size. It can be useful to select every second element of the list:
+A useful trick with this syntax is to use -1 to reverse the list:
+Lists are mutable. This means that you can reassign elements or add new ones:
+This is different from their cousins, the tuples, which are immutable.
+
+- Tuples
+
+Tuples are very similar to lists. Instead of square brackets, they are defined using parentheses:
+They support the same syntax as lists to access elements or slicing:
+However, tuples are immutable. You can’t reassign elements or add new ones. Trying to do so will raise an error:
+A common way to use them is for functions that have multiple return values. In the following example, we define a function to compute and return both the quotient and remainder of the Euclidean division:
+This function simply returns the quotient and remainder wrapped in a tuple. Let’s now compute the Euclidean division of 3 and 2:
+In this case, we assign the result to a tuple named t and simply retrieve the quotient and remainder by index. However, we can do something better than that. Let’s compute the Euclidean division of 42 and 4:
+You can see here that we directly assign the quotient and remainder to the q and r variables, respectively. This syntax is called unpacking and is very convenient for assigning variables from lists or tuple elements. It’s worth noting that since t is a tuple, it’s immutable, so you can’t reassign the values. On the other hand, q and r are new variables and therefore are mutable.
+
+- Dictionaries
+
+A dictionary is also a widely used data structure in Python, used to map keys to values. One is defined using curly braces, with a list of keys and values separated by a colon:
+Elements can be accessed by key:
+Dictionaries are mutable, so you can reassign or add elements in the mapping:
+
+- Sets
+
+A set is a convenient data structure for storing a collection of unique items. It is defined using curly braces:
+Basics of Python programming
+Elements can be added to the set, but the structure ensures elements appear only once:
+Convenient methods are also provided to perform operations such as unions or intersections on two sets:
+
+That’s all for this overview of the Python data structures. You’ll probably use them quite often in your programs, so take some time to get acquainted with them. Obviously, we didn’t cover all of their methods and specificities, but you can have a look at the official Python documentation for exhaustive information: https://docs.python.org/3/library/stdtypes.html.
+Let’s now talk about the different types of operators available in Python that will allow us to perform some logic on this data.
+
+### Performing Boolean logic and a few other operators
+
+Predictably, Python provides operators to perform Boolean logic. However, we’ll also see that there are other operators that are less common but make Python a very efficient language to work with.
+
+- Performing Boolean logic
+
+Boolean logic is performed with the and, or, and not keywords. Let’s review some simple examples:
+You’ll probably use them quite often in your programs, especially with conditional blocks. Let’s now review the identity operators.
+
+- Checking whether two variables are the same
+
+The is and is not identity operators check whether two variables refer to the same object. This is different from the comparison operators, == and !=, which check whether two variables have the same value.
+Internally, Python stores variables in pointers. The goal of the identity operators is thus to check whether two variables actually point to the same object in memory. Let’s review some examples:
+
+Even though the a and b lists are identical, they’re not the same object in memory, so a is b is false. However, a == b is true. Let’s see what happens if we assign a to b:
+
+In this case, the b variable will now refer to the same object as a, that is, the same list in memory. Thus, the identity operator is true.
+
+“is None” or “== None”? To check whether a variable is null, you could write a == None. While it will work most of the time, it’s generally advised to write a is None. Why? In Python, classes can implement custom comparison operators, so the result of a == None may be unpredictable in some cases, since a class can choose to attach a special meaning to the None value.
+
+We’ll now review the membership operators.
+
+- Checking whether a value is present in a data structure
+
+The membership operators, in and not in, are very useful for checking whether an element is present in data structures such as lists or dictionaries. They are idiomatic in Python and make this operation very efficient and easy to write. Let’s review some examples:
+
+With the membership operators, we can check in one statement whether an element is present or not in a list. It also works with tuples and sets:
+
+Finally, it also works with dictionaries. In this case, the membership operators check whether the key is present, not the value:
+
+We are now clear about those common operations. We’ll now put them to use with conditional statements.
+
+### Controlling the flow of a program
+
+A programming language would not be a programming language without its control flow statements. Once again, you’ll see that Python is a bit different from other languages. Let’s start with conditional statements.
+
+- Executing operations conditionally – if, elif, and else
+
+Classically, these statements are here for performing some logic based on some Boolean conditions. In the following example, we’ll consider a situation where we have a dictionary containing information about an e-commerce website order. We’ll write a function that will change the order status to the next step given the current status:
+
+The first condition is noted as if, followed by a Boolean condition. We then open an indented block, as we explained in the Indentation matters section of this chapter.
+
+The alternate conditions are noted as elif (not else if) and the fallback block is noted as else. Of course, those are optional if you don’t need alternate or fallback conditions.
+
+It’s also worth noting that, contrary to many other languages, Python does not provide a switch statement.
+
+- Repeating operations over an iterator – the for loop statement
+
+We’ll now move on to another classic control flow statement: the for loop. You can repeat operations over a sequence using the for loop statement.
+We already saw an example of the for loop in action in the Indentation matters section of this chapter. As you probably understood, this statement is useful for repeating the execution of a code block.
+
+You also may have noticed that it works a bit differently from other languages. Usually, programming languages define for loops like this: for (i = 0; i <= 10; i++). They give you the responsibility to define and control the variable used for the iteration.
+Python doesn’t work this way. Instead, it expects you to feed the loop with an iterator. An iterator can be seen as a sequence of elements that you can retrieve one by one. Lists, tuples, dictionaries, and sets can behave like an iterator and be used in a for loop. Let’s see some examples:
+
+But what if you just wish to iterate a certain number of times? Thankfully, Python has built-in functions that generate some useful iterators. The most well known is range, which precisely creates a sequence of numbers. Let’s see how it works:
+
+range will generate a sequence of the size you provided in the first argument, starting with zero.
+You could also be more precise by specifying two arguments: the start index (inclusive) and the last index (exclusive):
+
+Finally, you may even provide a step as a third argument:
+Note that this syntax is quite similar to the slicing syntax we saw earlier in this chapter in the sections dedicated to lists and tuples.
+range output is not a list A common misconception is to think range returns a list. It’s actually a Sequence object that only stores the start, end, and step arguments. That’s why you could write range(1000000000) without blowing up your system’s memory: the billions of elements are not assigned to memory all at once.
+As you see, the for loop syntax in Python is quite straightforward to understand and emphasizes readability. We’ll now have a word about its cousin, the while loop.
+
+- Repeating operations until a condition is met – the while loop statement
+
+The classical while loop is also available in Python. At the risk of disappointing you, there is nothing truly special about this one. Classically, this statement allows you to repeat instructions until a condition is met. We’ll review an example in which we use a while loop to retrieve paginated elements until we reach the end:
+
+The retrieve_page function is a dummy function that returns a dictionary with the items for the page passed in an argument and the next page number or None if we reached the last page. A priori, we don’t know how many pages there are. Thus, we repeatedly call retrieve_page until the page is None. At each iteration, we save the current page items in an accumulator, items.
+
+This kind of use case is quite common when you are dealing with third-party REST APIs and you wish to retrieve all items available, and while loops perfectly help with this.
+Finally, there are cases where you wish to prematurely end the loop or skip an iteration. To solve this, Python implements the classic break and continue statements.
+
+### Defining functions
+
+Now that we know how to use the common operators and control the flow of our program, let’s put it in reusable logic. As you may have guessed, we’ll look at functions and how to define them. We already saw them in some of our previous examples, but let’s introduce them more formally.
+
+In Python, functions are defined using the def keyword followed by the name of the function. Then, you have the list of supported arguments in parentheses, before a colon that indicates the start of the function body. Let’s see a simple example:
+
+That’s it! Python also supports default values on arguments:
+When calling a function, you can specify the value of arguments using their name:
+Those arguments are called keyword arguments. They are especially useful if you have several default arguments but only wish to set one of them:
+
+Function naming By convention, functions should be named using snake case: my_wonderful_function but not MyWonderfulFunction.
+But there is more! You can actually define functions accepting a dynamic number of arguments.
+
+- Accepting arguments dynamically with *args and **kwargs
+
+Sometimes, you may need a function that supports a dynamic number of arguments. Those arguments are then handled in your function logic at runtime. To do this, you have to use the *args and **kwargs syntax. Let’s define a function that uses this syntax and prints the value of those arguments:
+
+As you can see, standard arguments are placed in a tuple, in the same order as they were called. Keyword arguments, on the other hand, have been placed in a dictionary, with the key being the name of the argument. It’s up to you then to use this data to perform your logic!
+Interestingly, you can mix both approaches so that you have hardcoded arguments and dynamic ones:
+
+Well done! You have learned how to write functions in Python to organize the logic of your program. The next step now is to organize those functions into modules and import them into other modules to take advantage of them!
+
+### Writing and using packages and modules
+
+You probably already know that, apart from small scripts, your source code shouldn’t live in one big file with thousands of lines. Instead, you should split it into logical blocks of reasonable size that are easy to maintain. That’s exactly what packages and modules are for! We’ll see how they work and how you can define your own.
+
+First of all, Python comes with its own set of modules, the standard library, which are directly importable in a program:
+
+With just the import keyword, you can use the datetime module and access all its content by referring to its namespace, datetime.date, which is the built-in class to work with dates. However, you may sometimes wish to explicitly import a part of this module:
+
+Here, we explicitly import the date class to use it directly. The same principles apply to third-party packages installed with pip, such as FastAPI.
+
+Using existing packages and modules is nice but writing your own is even better. In Python, a module is a single file containing declarations but can also contain instructions that will be executed when the module is first imported. You’ll find the definition of a very simple module in the following example:
+
+This module only contains a function, module_function, and a print statement. Create a file containing this code at the root of your project directory and name it module.py. Then, open a Python interpreter and run this command:
+
+Notice that the print statement was executed when you imported it. You can now use the function:
+Congratulations! You’ve just written your first Python module!
+
+Now, let’s see how to structure a package. A package is a way to organize modules in a hierarchy, which you can then import using their namespace.
+At the root of your project, create a directory named package. Inside, create another directory named subpackage and move module.py into it. Your project structure should look like the one shown in Figure 2.1:
+You can then import your module using the full namespace:
+
+It works! However, to define a proper Python package, it’s strongly recommended to create an empty __init__.py file at the root of each package and sub-package. In older Python versions, it was compulsory to make a package recognizable by the interpreter. This became optional in more recent versions, but there are actually some subtle differences between a package with an __init__. py file (a package) and one without (a namespace package). We won’t explain it further in this book, but you could check the documentation about namespace packages here if you wish to learn more details: https://packaging.python.org/en/latest/guides/packaging- namespace-packages/.
+
+Therefore, you generally always should create __init__.py files. In our example, our project structure would finally look like this:
+
+It’s worth noting that even if empty __init__.py files are perfectly fine, you can actually write some code in them. In this case, it is executed the first time you import the package or one of its sub-modules. It’s useful to perform some initialization logic for your package. You now have a good overview of how to write some Python code. Feel free to write some small scripts to get acquainted with its peculiar syntax. We’ll now explore more advanced topics about the language that will prove useful during our journey with FastAPI.
+
+## Operating over sequences – list comprehensions and generators
+
+In this section, we’ll cover what are probably the most idiomatic constructions in Python: list comprehensions and generators. You’ll see that they are very useful for reading and transforming sequences of data with minimal syntax.
+
+### List comprehensions
+
+In programming, a very common task is to transform a sequence (let’s say, a list) into another, for example, to filter out or transform elements. Usually, you would write such an operation as we did in one of the previous examples of this chapter:
+
+With this approach, we simply iterate over each element, check a condition, and add the element in an accumulator if it passes this condition.
+
+To go further in its readability philosophy, Python supports a neat syntax to perform this operation in only one statement: list comprehensions. Let’s see what our previous example looks like with this syntax:
+
+Actually, the result element can be any valid Python expression. In the following example, we use the randint function of the random standard module to generate a list of random integers:
+
+This syntax is widely used by Python programmers and you’ll probably grow quite fond of it. The nice thing about this syntax is that it also works for sets and dictionaries. Quite simply, just replace the square brackets with curly braces to generate a set:
+
+To create a dictionary, specify both the key and the value separated by a colon:
+
+### Generators
+
+You might think that if you replace the square brackets with parentheses, you could obtain a tuple. Actually, you get a generator object. The main difference between generators and list comprehensions is that elements are generated on demand and not computed and stored all at once in memory. You could see a generator as a recipe to generate values.
+As we said, a generator can be defined simply by using the same syntax as list comprehensions, with parentheses:
+
+In this example, we define even_generator to output the even number of the numbers list. Then, we call the list constructor with this generator and assign it to the variable named even. This constructor will exhaust the iterator passed in the argument and build a proper list. We do it a second time and assign it to even_bis.
+
+As you can see, even is a list with all the even numbers. However, even_bis is an empty list. This simple example is here to show you that a generator can be used only once. Once all the values have been produced, it’s over.
+
+This can be useful because you can start to iterate on the generator, stop to do something else, and resume iterating.
+
+Another way to create generators is to define generator functions. In the following example, we’ll define a generator function that outputs even numbers from 2 to the limit passed in an argument:
+
+As you can see in this function, we use the yield keyword instead of return. When the interpreter reaches this statement, it pauses the function execution and yields the value to the generator consumer. When the main program asks for another value, the function is resumed in order to yield again.
+
+This allows us to implement complex generators, even ones that will output different types of values over their course. Another interesting property of generator functions is that they allow us to execute some instructions when they have finished generating values. Let’s add a print statement at the end of the function we just reviewed:
+
+If you execute it in a Python interpreter, you’ll get this output:
+
+We get Generator exhausted in the output, which means that our code after the last yield statement is well executed.
+This is especially useful when you want to perform some cleanup operations after your generator has been exhausted: close a connection, remove temporary files, and so on.
+
+## Writing object-oriented programs
+
+As we said in the first section of this chapter, Python is a multi-paradigm language, and one of those paradigms is object-oriented programming. In this section, we’ll review how you can define classes and how you can instantiate and use objects. You’ll see that Python syntax is once again very lightweight.
+
+### Defining a class
+
+Defining a class in Python is straightforward: use the class keyword, type the name of your class, and begin a new block. You can then define methods under it just like you would for regular functions. Let’s review an example:
+
+Notice that the first argument of each method must be self, which is a reference to the current object instance (the equivalent of this in other languages).
+
+To instantiate a class, simply call the class as you would for a function and assign it to a variable. You can then access the methods using dot notation.
+
+Class and method naming By convention, classes should be named using camel case: MyWonderfulClass but not my_wonderful_class. Methods should use snake case, like regular functions.
+
+Obviously, you can also set class properties. To do this, we’ll implement the __init__ method, whose goal is to initialize values:
+
+In this example, __init__ allows us to set a default_name property, which will be used by the greet method if no name is provided in the argument. As you can see, you can simply access this property through dot notation.
+
+Be careful though: __init__ is not a constructor. In typical object-oriented languages, a constructor is a method to actually create the object in memory. In Python, when __ init__ is called, the object is already created in memory (notice we have access to the self instance). Actually, there is a method to define the constructor, __new__, but it’s rarely used in common Python programs.
+
+Private methods and properties In Python, there is no such thing as private methods or properties. Everything will always be accessible from the outside. However, by convention, you can prefix your private methods and properties with an underscore to suggest that they should be considered private: _private_method.
+
+You now have the basics of object-oriented programming in Python! We’ll now focus on magic methods, which will allow us to do clever things with objects.
+
+### Implementing magic methods
+
+Magic methods are a set of predefined methods that bear a special meaning in the language. They are easy to recognize as they start and end with two underscores. Actually, we already saw one of those magic methods: __init__! Those methods are not called directly but are used by the interpreter when using other constructs such as standard functions or operators.
+
+To understand how they are useful, we’ll review the most used ones. Let’s start with __repr__ and __str__.
+
+- Object representations – __repr__ and __str__
+
+When you define a class, it’s generally useful to be able to get a readable and clear string representation of an instance. For this purpose, Python provides two magic methods: __repr__ and __str__. Let’s see how they work on a class representing a temperature in either degrees Celsius or degrees Fahrenheit:
+
+If you run this example, you’ll notice that print(t) prints the same thing as print(str(t)). Through print, the interpreter called the __str__ method to get the string representation of our object. This is what __str__ is for: giving a nice string representation of an object for the end user.
+
+On the other hand, you saw that even though they’re very similar, we implemented __repr__ in a different way. The purpose of this method is to give an internal representation of the object that is unambiguous. By convention, this should give the exact statement that would allow us to recreate the very same object.
+
+Now that we can represent temperatures with our class, what would happen if we tried to compare them?
+
+- Comparison methods – __eq__, __gt__, __lt__, and so on
+
+Of course, comparing two temperatures with different units would lead to unexpected results. Fortunately, magic methods allow us to overload the default operators to perform meaningful comparisons. Let’s expand on our previous example:
+
+In the __init__ method, we convert the temperature value into Kelvin given the current scale. This will help us to make comparisons. Then, let’s define __eq__ and __lt__:
+
+As you can see, those methods simply accept another argument, which is the other object instance to compare with. We then just have to perform our comparison logic. By doing this, we can perform comparison just as we would for any variable:
+
+That’s it! If you wish to have all the comparison operators available, you should also implement all the other comparison magic methods: __le__, __gt__, and __ge__.
+
+The type of the other instance is not guaranteed In this example, we assumed the other variable was also a Temperature object. In the real world, however, this is not guaranteed and developers could try to compare Temperature with another object, which would likely lead to errors or weird behaviors. To prevent this, you should check the type of the other variable using isinstance to ensure we handle Temperature, or raise a proper exception otherwise.
+
+- Operators – __add__, __sub__, __mul__, and so on
+
+Similarly, you could also define what would happen when trying to add or multiply two Temperature objects. We won’t go into much detail here as it works exactly like the comparison operators.
+
+- Callable object – __call__
+
+The last magic method we’ll review is __call__. This one is a bit special because it enables you to call your object instance like a regular function. Let’s take an example:
+
+The __call__ method can be defined like any other method, with any argument you wish. The only difference is how you call it: you just pass the argument directly on the object instance variable as you would do for a regular function.
+
+This pattern can be useful if you want to define a function that maintains some kind of local state, as we did here in our example, or in cases where you need to provide a callable object but have to set some parameters. Actually, this is the use case we’ll encounter when defining class dependencies for FastAPI.
+
+As we saw, magic methods are an excellent way to implement operations for our custom classes and make them easy to use in a purely object-oriented way. We haven’t covered every magic method available but you can find the complete list in the official documentation: https://docs.python. org/3/reference/datamodel.html#special-method-names.
+
+We’ll now focus on another essential characteristic of object-oriented programming: inheritance.
+
+### Reusing logic and avoiding repetition with inheritance
+
+Inheritance is one of the core concepts of object-oriented programming: it allows you to derive a new class from existing ones, enabling you to reuse some logic and overload the parts that are specific to this new class. Of course, this is supported in Python. We’ll take very simple examples to understand the mechanism underneath.
+First of all, let’s take an example of very simple inheritance:
+
+The Child class inherits from the A class. The syntax is simple: the class we want to inherit from is specified between parentheses after the child class name.
+
+The pass statement
+pass is a statement that does nothing. Since Python relies only on indentation to denote blocks, it’s a useful statement to create an empty block, as you would do with curly braces in other programming languages. In this example, we don’t want to add some logic to the Child class, so we just write pass.
+Another way to do it is to add a docstring just below the class definition.
+
+If you wish to overload a method but still want to get the result of the parent method, you can call the super function:
+
+You now know how to use basic inheritance in Python. But there is more: we can also have multiple inheritance!
+
+- Multiple inheritance
+
+As its name suggests, multiple inheritance allows you to derive a child class from multiple classes. This way, you can combine the logic of several classes into one. Let’s take an example:
+
+Once again, the syntax is quite straightforward: just list all the parent classes with a comma. Now, the Child class can call both methods, f and g.
+
+Mixins Mixins are common patterns in Python that take advantage of the multiple inheritance feature. Basically, mixins are short classes containing a single feature that you often want to reuse. You can then compose concrete classes by combining mixins.
+
+However, what would happen if both A and B classes implemented a method named f? Let’s try it out:
+
+If you call the f method of Child, you’ll get the value "A". In this simple case, Python will consider the first matching method following the order of the parent classes. However, for more complex hierarchies, the resolution may not be so obvious: this is the purpose of the Method Resolution Order (MRO) algorithm. We won’t go into much detail here but you can have a look at the official document explaining the algorithm implemented by Python: https://www.python.org/download/ releases/2.3/mro/.
+
+If you are confused about the MRO of your class, you can call the mro method on your class to get a list of considered classes in order:
+
+Well done! You now have a good overview of object-oriented programming in Python. Those concepts will be helpful when defining dependencies in FastAPI.
+
+We’ll now review some of the most recent and trending features in Python, upon which FastAPI relies heavily. We’ll start with type hinting.
+
+## Type hinting and type checking with mypy
+
+In the first section of this chapter, we said that Python was a dynamically typed language: the interpreter doesn’t check types at compile time but rather at runtime. This makes the language a bit more flexible and the developer a bit more efficient. However, if you are experienced with that kind of language, you probably know that it’s easy to produce errors and bugs in this context: forgetting arguments, type mismatches, and so on.
+
+This is why Python introduced type hinting starting in version 3.5. The goal is to provide a syntax to annotate the source code with type annotations: each variable, function, and class can be annotated to give indications about the types they expect. This doesn’t mean that Python becomes a statically typed language. Those annotations remain completely optional and are ignored by the interpreter. However, those annotations can be used by static type checkers, which will check whether your code is valid and consistent following the annotations. Hence, it greatly helps you to reduce errors and write self-explanatory code. One of those tools, mypy, is widely used by the community in this context.
+
+### Getting started
+
+To understand how type annotations work, we’ll review a simple annotated function:
+
+As you can see here, we simply added the type of the name argument after a colon. We also specified the return type after an arrow. For built-in types, such as str or int, we can simply use them as type annotations. We’ll see a little later in this section how to annotate more complex types such as lists or dictionaries.
+
+We’ll now install mypy to perform a type check on this file. This can be done like any other Python package:
+Then, you can run a type check on your source file:
+As you can see, mypy tells us that everything is good with our typing. Let’s try to modify our code a bit to provoke a type error:
+
+Quite simply, we just said that the return type of our function is now int, but we are still returning a string. If you run this code, it’ll execute perfectly well: as we said, the interpreter ignores type annotations. However, let’s see what mypy tells us about it:
+
+This time, it complains. It clearly tells us what is wrong here: the return value is a string, while an integer was expected!
+
+Code editors and IDE integration Having type checking is good, but it may be a bit tedious to run mypy manually on the command line. Fortunately, it integrates well with the most popular code editors and IDEs. Once configured, it’ll perform type checking while you type and show you errors directly on faulty lines. Type annotations also help the IDE to perform clever things such as auto-completion. You can check in the official documentation of mypy how to set it up for your favorite editor: https://github.com/python/mypy#integrations.
+
+You understand the basics of type hinting in Python. We’ll now review more advanced examples, especially with non-scalar types.
+
+### Type data structures
+
+So far, we’ve seen how to annotate variables for scalar types such as str or int. But we’ve seen that there are data structures such as lists and dictionaries that are widely used in Python. In the following example, we’ll show how to type-hint the basic data structures in Python:
+
+You can see here that we can use the list, tuple, set, and dict standard classes as type hints. However, they expect you to provide the type of the values composing your structure. It’s the well-known concept of generics in object-oriented programming. In Python, they are defined using square brackets.
+
+Of course, there are more complex use cases. For example, having a list with elements of different types is perfectly valid in Python. To make this work with type checkers, we can simply use the | notation to specify several allowed types:
+
+In this case, our list will accept either integers or floating-point numbers. Of course, mypy will complain if you try to add an element in this list that is neither an int nor a float type.
+
+There is also another case where this is useful: quite often, you’ll have function arguments or return types that either return a value or None. Thus, you could write something like this:
+The allowed value is either a string or None.
+
+Type annotations were different before Python 3.9 
+Before Python 3.9, it wasn’t possible to annotate lists, tuples, sets, and dictionaries using the standard class. We needed to import special classes from the typing module: l: List[int] = [1, 2, 3, 4, 5]. The | notation wasn’t available either. We needed to use a special Union class from typing: l: List[Union[int, float]] = [1, 2.5, 3.14, 5]
+This way of annotating is now deprecated, but you may still find it in older code bases.
+Type hinting and type checking with mypy
+
+When dealing with complex types, it may be useful to alias and reuse them at will without the need to rewrite them each time. To do this, you can simply assign them as you would do for any variable:
+
+By convention, types should be named using camel case, like classes. Talking about classes, let’s see how type hinting works with them:
+
+Actually, there is nothing special about classes’ type hinting. You just annotate the methods as you would for a regular function. If you need to use your class in an annotation, like here for a list of posts, you just have to use the class name.
+
+Sometimes, you’ll have to write a function or method that accepts another function in an argument. In this case, you’ll need to give the type signature of this function.
+
+### Type function signatures with Callable
+
+A more advanced use case is to be able to have types for function signatures. For example, it can be useful when you need to pass functions as arguments of other functions. For this task, we can use the Callable class, available in the collections.abc module. In the following example, we’ll implement a function called filter_list expecting as arguments a list of integers and a function returning a Boolean given an integer:
+
+What is the collections.abc module?
+collections.abc is a module from the standard Python library providing abstract base classes for the common objects we use daily in Python: iterators, generators, callables, sets, mappings, and so on. They are mainly useful in advanced use cases where we need to implement new custom objects that should behave like an iterator, generator, and so on. Here, we only use them as type hints.
+
+You can see here that we define a type alias, ConditionFunction, thanks to Callable. Once again, this is a generic class that expects two things: first, the list of argument types and then the return type. Here, we expect a single integer argument and the return type is a Boolean.
+
+We can then use this type in the annotation of the filter_list function. mypy will then ensure that the condition function passed in the argument conforms to this signature. For example, we could write a simple function to check the parity of an integer, as shown in the next sample:
+
+It’s worth noting, however, that there is no syntax to indicate optional or keyword arguments. In this case, you can write Callable[..., bool], the ellipsis (...) here meaning any number of arguments.
+
+### Any and cast
+
+In some situations, the code is so dynamic or complicated that it won’t be possible to annotate it correctly or the type checker may not correctly infer the type. For this, we can use Any and cast. They are available in the typing module, which was introduced by Python to help with more specific use cases and constructs regarding type hints.
+
+Any is a type annotation telling the type checker the variable or argument can be anything. In this case, any type of value will be valid for the type checker:
+
+The second one, cast, is a function that lets you override the type inferred by the type checker. It’ll force the type checker to consider the type you specify:
+
+Be careful though: the cast function is only meaningful for type checkers. As for every other type of annotation, the interpreter completely ignores it and doesn’t perform a real cast.
+While convenient, try to refrain from using those utilities too often. If everything is Any or cast to a different type, you completely miss the benefits of static type checking.
+
+As we have seen, type hinting and type checking are really helpful in reducing errors while developing and maintaining high-quality code. But that’s not all. Actually, Python allows you to retrieve type annotations at runtime and perform some logic based on them. This enables you to do clever things such as dependency injection: just by type hinting an argument in a function, a library can automatically interpret it and inject the corresponding value at runtime. This concept is at the heart of FastAPI.
+
+Another key approach in FastAPI is asynchronous I/O. This will be the last subject we’ll cover in this chapter.
+
+## Working with asynchronous I/O
+
+If you have already worked with JavaScript and Node.js, you have probably come across the concepts of promises and async/await keywords, which are characteristic of the asynchronous I/O paradigm. Basically, this is a way to make I/O operations non-blocking and allow the program to perform other tasks while the read or write operation is ongoing. The main motivation behind this is that I/O operations are slow: reading from disk, network requests are million times slower than reading from RAM or processing instructions. In the following example, we have a simple script that reads a file on disk:
+
+We see that the script will block until we have retrieved the data from the disk and, as we said, this can be a long time. 99% percent of the execution time of the program is spent on waiting for the disk. Usually, it’s not an issue for simple scripts like this because you probably won’t have to perform other operations in the meantime.
+
+However, in other situations, it could be an opportunity to perform other tasks. The typical case that is of great interest in this book is web servers. Imagine we have a first user making a request that performs a 10-second-long database query before sending the response. If a second user makes another request in the meantime, they’ll have to wait for the first response to finish before getting their answer.
+
+To solve this, traditional Python web servers based on the Web Server Gateway Interface (WSGI), such as Flask or Django, spawn several workers. Those are sub-processes of the web server that are all able to answer requests. If one is busy processing a long request, others can answer new requests.
+
+With asynchronous I/O, a single process won’t block when processing a request with a long I/O operation. While it waits for this operation to finish, it can answer other requests. When the I/O operation is done, it resumes the request logic and can finally answer the request.
+
+Technically, this is achieved through the concept of an event loop. Think of it as a conductor that will manage all the asynchronous tasks you send to it. When data is available or when the write operation is done for one of those tasks, it’ll ping the main program so that it can perform the next operations. Underneath, it relies upon the operating system select and poll calls, which are precisely there to ask for events about I/O operations at the operating system level. You can read very interesting details about this in the article Async IO on Linux: select, poll, and epoll by Julia Evans: https:// jvns.ca/blog/2017/06/03/async-io-on-linux--select--poll--and-epoll.
+
+Python first implemented asynchronous I/O in version 3.4 and it has since greatly evolved, notably with the introduction of the async/await keywords in version 3.6. All the utilities to manage this paradigm are available through the standard asyncio module. Not long after, the spiritual successor of WSGI for asynchronous-enabled web servers, Asynchronous Server Gateway Interface (ASGI), was introduced. FastAPI relies on this, and this is one of the reasons why it shows such great performance.
+
+We’ll now review the basics of asynchronous programming in Python. The following example is a simple Hello world script using asyncio:
+
+When you wish to define an asynchronous function, you just have to add the async keyword before def. This allows you to use the await keyword inside it. Such async functions are called coroutines.
+
+Inside it, we first call the print function and then call the asyncio.sleep coroutine. This is the async equivalent of time.sleep, which blocks the program for a given number of seconds. Notice that we prefixed the call with the await keyword. This means that we want to wait for this coroutine to finish before proceeding. This is the main benefit of async/await keywords: writing code that looks like synchronous code. If we omitted await, the coroutine object would have been created but never executed.
+
+Finally, notice that we use the asyncio.run function. This is the machinery that will create a new event loop, execute your coroutine, and return its result. It should be the main entry point of your async program.
+
+This example is nice but not very interesting from an asynchronous point of view: since we are waiting for only one operation, this is not very impressive. Let’s see an example where we execute two coroutines concurrently:
+
+Here, we have a printer coroutine that prints its name a given number of times. Between each print, it sleeps for 1 second.
+Then, our main coroutine uses the asyncio.gather utility, which schedules several coroutines for concurrent execution. If you run this script, you’ll get the following result:
+
+We get a succession of A and B. It means our coroutines were executed concurrently and that we didn’t wait for the first one to finish before starting the second one.
+You might wonder why we added the asyncio.sleep call in this example. Actually, if we removed it, we would have obtained this result:
+
+That doesn’t look very concurrent, and indeed, it’s not. This is one of the main pitfalls of asyncio: writing code in a coroutine doesn’t necessarily mean that it won’t block. Regular operations such as computations are blocking and will block the event loop. Usually, this is not a problem since those operations are fast. The only operations that won’t block are proper I/O operations that are designed to work asynchronously. This is different from multiprocessing where operations are executed on child processes, which, by nature, doesn’t block the main one.
+
+Because of this, you’ll have to be careful when choosing a third-party library for interacting with databases, APIs, and so on. Some have been adapted to work asynchronously and some alternatives have been developed in parallel with the standard ones. We’ll see some of them in the following chapters, especially when working with databases.
+
+We’ll end this quick introduction to asynchronous I/O here. There are some other subtleties underneath but, generally, the basics we’ve seen here will allow you to leverage the power of asyncio with FastAPI.

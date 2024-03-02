@@ -1,0 +1,932 @@
+
+LLMs for Data Science
+This chapter is about how generative AI can automate data science. Generative AI, in particular 
+LLMs, has the potential to accelerate scientific progress across various domains, especially by  providing efficient analysis of research data and aiding in literature review processes. A lot of the  current approaches that fall within the domain of Automated Machine Learning  (AutoML ) can  help data scientists increase their productivity and make data science processes more repeatable. 
+In this chapter, we’ll first discuss how data science is affected by generative AI and then cover an  overview of automation in data science.
+Next, we’ll discuss how we can use code generation and tools in diverse ways to answer questions  related to data science. This can come in the form of doing a simulation or enriching our dataset  with additional information. Finally, we’ll shift the focus to the exploratory analysis of structured  datasets. We can set up agents to run SQL or tabular data in pandas. We’ll see how we can ask  questions about the dataset, statistical questions about the data, or ask for visualizations.
+Throughout the chapter, we’ll work on different approaches to doing data science with LLMs,  which you can find in the data_science  directory in the GitHub repository for this book at  https://github.com/benman1/generative_ai_with_langchain .
+The main sections in this chapter are:
+• The impact of generative models on data science
+• Automated data science
+• Using agents to answer data science questions
+• Data exploration with LLMs
+
+Page 227:
+LLMs for Data Science 204
+Before delving into how data science can be automated, let’s start by discussing how generative 
+AI will impact data science!
+The impact of generative models on data science
+Generative AI and LLMs like GPT-4 have brought about significant changes in the field of data  science and analysis. These models, particularly LLMs, can revolutionize all the steps involved in  data science in many ways, offering exciting opportunities for researchers and analysts. Generative 
+AI models, such as ChatGPT, can understand and generate human-like responses, making them  valuable tools for enhancing research productivity.
+Generative AI plays a crucial role in analyzing and interpreting research data. These models can  assist in data exploration, uncover hidden patterns or correlations, and provide insights that  may not be apparent through traditional methods. By automating certain aspects of data anal- ysis, generative AI saves time and resources, allowing researchers to focus on higher-level tasks.
+Another area where generative AI can benefit researchers is in performing literature reviews and  identifying research gaps. ChatGPT and similar models can summarize vast amounts of informa - tion from academic papers or articles, providing a concise overview of existing knowledge. This  helps researchers identify gaps in the literature and guide their own investigations more efficiently. 
+We’ve looked at this aspect of using generative AI models in Chapter 4 , Building Capable Assistants .
+Other data science use cases for generative AI are:
+• Automatically generating  synthetic data: Generative AI can be used to automatically  generate synthetic data that can be used to train machine learning models. This can be  helpful for businesses that do not have access to enormous amounts of real-world data.
+• Identifying patterns in data: Generative AI can be used to identify patterns in data that  would not be visible to human analysts. This can be helpful for businesses that are looking  to gain new insights from their data.
+• Creating new features from existing data: Generative AI can be used to create new fea - tures from existing data. This can be helpful for businesses that are looking to improve  the accuracy of their machine learning models.
+According to recent reports by the likes of McKinsey and KPMG, the consequences of AI relate to  what data scientists will work on, how they will work, and who can work on data science tasks. 
+The principal areas of key impact include:
+
+Page 228:
+Chapter 7 205
+• Democratization of AI: Generative models allow many more people to leverage AI by  generating text, code, and data from simple prompts. This expands the use of AI beyond  data scientists.
+• Increased productivity: By auto-generating code, data, and text, generative AI can accel- erate development and analysis workflows. This allows data scientists and analysts to  focus on higher-value tasks.
+• Innovation in data science: Generative AI is bringing about the ability to explore data in  new and more creative ways, and generate new hypotheses and insights that would not  have been possible with traditional methods
+• Disruption of industries: New applications of generative AI could disrupt industries by  automating tasks or enhancing products and services. Data teams will need to identify  high-impact use cases.
+• Limitations remain: Current models still have accuracy limitations, bias issues, and lack  of controllability. Data experts are needed to oversee responsible development.
+• Importance of governance: Rigorous governance over development and ethical use of  generative AI models will be critical to maintaining stakeholder trust.
+• Changes to data science skills: Demand may shift from coding expertise to abilities in data  governance, ethics, translating business problems, and overseeing AI systems.
+Regarding the democratization and innovation of data science, more specifically, generative AI  is also having an impact on the way that data is visualized. In the past, data visualizations were  often static and two-dimensional. However, generative AI can be used to create interactive and  three-dimensional visualizations that can help to make data more accessible and understandable. 
+This is making it easier for people to understand and interpret data, which can lead to better  decision-making.
+Again, one of the biggest changes that generative AI is bringing about is the democratization of data  science. In the past, data science was a very specialized field that required a deep understanding  of statistics and machine learning. However, generative AI is making it possible for people with  less technical expertise to create and use data models. This is opening up the field of data science  to a much wider range of people.
+
+Page 229:
+LLMs for Data Science 206
+LLMs and generative AI can play a crucial role in automated data science by offering several  benefits:
+• Natural language interaction: LLMs allow for natural language interaction, enabling users  to communicate with the model using plain English or other languages. This makes it  easier  for non-technical users to interact with and explore the data using everyday lan- guage, without requiring expertise in coding or data analysis.
+• Code generation: Generative AI can automatically generate code snippets to perform spe - cific analysis tasks during Exploratory Data Analysis ( EDA ). For example, it can generate  code such as SQL to retrieve data, clean data, handle missing values, or create visualiza - tions. This feature saves time and reduces the need for manual coding.
+• Automated report generation: LLMs can generate automated reports summarizing the  key findings of EDA. These reports provide insights into various aspects of the dataset,  such as statistical summary, correlation analysis, feature importance, and so on, making  it easier for users to understand and present their findings.
+• Data exploration and visualization: Generative AI algorithms can explore large datasets  comprehensively and generate visualizations that reveal underlying patterns, relationships  between variables, outliers, or anomalies in the data automatically. This helps users gain  a holistic understanding of the dataset without manually creating each visualization.
+Further, we could think that generative AI algorithms should be able to learn from user interac- tions and adapt their recommendations based on individual preferences or past behaviors. They  improve over time through continuous adaptive learning and user feedback, providing more  personalized and useful insights during automated EDA.
+Finally, generative AI models can identify errors or anomalies in the data during EDA by learning  patterns from existing datasets (intelligent error identification). They can detect inconsistencies  and highlight potential issues quickly and accurately.
+Overall, LLMs and generative AI can enhance automated EDA by simplifying user interaction,  generating code snippets, identifying errors/anomalies efficiently, automating report generation,  facilitating comprehensive data exploration, visualization creation, and adapting to user prefer - ences for more effective analysis of large and complex datasets.
+However, while these models offer immense potential to enhance research and aid in literature  review processes, they should not be treated as infallible sources. As we’ve seen earlier, LLMs work  by analogy and struggle with reasoning and math. Their strength is creativity, not accuracy, and  therefore, researchers must exercise critical thinking and ensure that the outputs generated by  these models are accurate, unbiased, and aligned with rigorous scientific standards.
+
+Page 230:
+Chapter 7 207
+One notable example is Microsoft’s Fabric, which incorporates a chat interface powered by gen- erative AI. This allows users to ask data-related questions using natural language and receive  instant answers without having to wait in a data request queue. By leveraging LLMs like OpenAI  models, Fabric enables real-time access to valuable insights.
+Fabric stands out among other analytics products due to its comprehensive approach. It addresses  various aspects of an organization’s analytics needs and provides role-specific experiences for  different teams involved in the analytics process, such as data engineers, warehousing profes - sionals, scientists, analysts, and business users.
+With the integration of Azure OpenAI Service at every layer, Fabric harnesses generative AI’s power  to unlock the full potential of data. Features like Copilot in Microsoft Fabric provide conversational  language experiences, allowing users to create dataflows, generate code or entire functions, build  machine learning models, visualize results, and even develop custom conversational language  experiences.
+ChatGPT (and Fabric in extension) often produces incorrect SQL queries. This is fine when used by  analysts who can check the validity of the output but a total disaster as a self-service analytics tool  for non-technical business users. Therefore, organizations must ensure that they have reliable data  pipelines in place and employ data quality management practices while using Fabric for analysis.
+While the possibilities of generative AI in data analytics are promising, caution must be exercised. 
+The reliability and accuracy of LLMs should be verified using first-principles reasoning and rigor - ous analysis. While these models have shown their potential in ad hoc analysis, idea generation  during research, and summarizing complex analyses, they may not always be suitable as self-ser - vice analytical tools for non-technical users due to the need for validation by domain experts.
+Automated data science
+Data science is a field that combines computer science, statistics, and business analytics to extract  knowledge and insights from data. Data scientists use a variety of tools and techniques to collect,  clean, analyze, and visualize data. They then use this information to help businesses make better  decisions. The responsibilities of a data scientist are wide-ranging and often involve multiple  steps that vary depending on the specific role and industry. Tasks include data collecting, clean- ing, analyzing, and visualizing. Data scientists are also tasked with building predictive models  to help in decision-making processes. All the tasks mentioned are crucial to data science but can  be time-consuming and complex.
+
+Page 231:
+LLMs for Data Science 208
+Automating various aspects of the data science workflow allows data scientists to focus more on  creative problem-solving while enhancing productivity. Recent tools are making different stages  of the process more efficient by enabling faster iterations and less manual coding for common  workflows. Some of the tasks for data science overlap with those of a software developer that we  talked about in Chapter 6, Developing Software with Generative AI, namely, writing and deploying  software, although with a narrower focus, on models.
+Data science platforms like KNIME, H2O, and RapidMiner provide unified analytics engines to  preprocess data, extract features, and build models. LLMs integrated into these platforms, such  as GitHub Copilot or Jupyter AI, can generate code for data processing, analysis, and visualiza - tion based on natural language prompts. Jupyter AI allows conversing with a virtual assistant to  explain code, identify errors, and create notebooks. 
+This screenshot from the documentation shows the chat feature, the Jupyternaut chat (Jupyter AI):
+Figure 7.1: Jupyter AI – Jupyternaut chat
+
+Page 232:
+Chapter 7 209
+It should be plain to see that having a chat like that at your fingertips to ask questions, create  simple functions, or change existing functions can be a boon to data scientists.
+Overall, automated data science can accelerate analytics and ML application development. It  allows data scientists to focus on higher-value and creative aspects of the process. Democratizing  data science for business analysts is also a key motivation behind automating these workflows. In  the following sections, we’ll investigate different tasks in turn, and we’ll highlight how generative 
+AI can contribute to improving the workflow and create efficiency gains in areas such as data  collection, visualization and EDA , preprocessing and feature engineering, and finally, AutoML. 
+Let’s look at each of these areas in more detail.
+Data collection
+Automated data collection is the process of collecting data without human intervention. Automatic  data collection can be a valuable tool for businesses. It can help businesses to collect data more  quickly and efficiently, and it can free up human resources to focus on other tasks.
+In the context of data science or analytics, we refer to ETL  (extract, transform, and load) as the  process that not only takes data from one or more sources (data collection) but also prepares it  for specific use cases.
+There are many ETL tools, including commercial ones such as AWS Glue, Google Dataflow, Am- azon Simple Workflow Service (SWF ), dbt, Fivetran, Microsoft SSIS, IBM InfoSphere DataStage, 
+Talend Open Studio, or open-source tools such as Airflow, Kafka, and Spark. In Python, there are  many more tools (too many to list them all), such as pandas for data extraction and processing,  and even celery and joblib, which can serve as ETL orchestration tools.
+In LangChain, there’s an integration with Zapier, which is an automation tool that can be used  to connect different applications and services. This can be used to automate the process of data  collection from a variety of sources. LLMs offer an accelerated way to gather and process data,  notably excelling in the organization of unstructured datasets.
+The best tool for automatic data collection will depend on the specific needs of the business. 
+Businesses should consider the type of data they need to collect, the volume of data they need to  collect, and the budget they have available.
+
+Page 233:
+LLMs for Data Science 210
+Visualization and EDA
+EDA involves manually exploring and summarizing data to understand its various aspects before  performing machine learning tasks. It helps in identifying patterns, detecting inconsistencies,  testing assumptions, and gaining insights. However, with the advent of large datasets and the  need for efficient analysis, automated EDA has become important.
+Automated EDA and visualization refer to the process of using software tools and algorithms to  automatically analyze and visualize data, without significant manual intervention. These tools  provide several benefits. They can speed up the data analysis process, reducing the time spent  on tasks like data cleaning, handling missing values, outlier detection, and feature engineering. 
+These tools also enable the more efficient exploration of complex datasets by generating inter - active visualizations that provide a comprehensive overview of the data.
+The use of generative AI in data visualization adds another dimension to automated EDA by gen- erating new visualizations based on user prompts, making the visualization and interpretation  of data even more accessible.
+Preprocessing and feature extraction
+Automated data preprocessing can include tasks such as data cleaning, data integration, data  transformation, and feature extraction. It is related to the transform step in ETL, so there’s a lot of  overlap in tools and techniques. Automated feature engineering, on the other hand, is becoming  essential to leveraging the full power of ML algorithms on complex real-world data. This includes  removing errors and inconsistencies from the data and converting it into a format compatible  with the analytical tools that will be used.
+During preprocessing and feature engineering, LLMs automate the cleaning, integration, and  transformation of data. The adoption of these models promises to streamline processes, thereby  improving privacy management by minimizing human handling of sensitive information during  these stages. While boosting flexibility and performance in preprocessing tasks, there remains a  challenge in ensuring the safety and interpretability of automatically engineered features, which  may not be as transparent as manually created ones. The gains in efficiency must not undermine  the need for checks against introducing inadvertent biases or errors through automation.
+
+Page 234:
+Chapter 7 211
+AutoML
+AutoML frameworks represent a noteworthy leap in the evolution of machine learning. By stream - lining the complete model development cycle, including tasks such as data cleaning, feature selec - tion, model training, and hyperparameter tuning, AutoML frameworks significantly economize on  the time and effort customarily expended by data scientists. These frameworks not only enhance  the pace but also potentially elevate the quality of machine learning models.
+The basic idea of AutoML is illustrated in this diagram from the GitHub repo of the mljar  AutoML  library (source: https://github.com/mljar/mljar-supervised ):
+Figure 7.2: How AutoML works
+Key to the value offered by AutoML systems is their contributory effect on ease of use and pro - ductivity growth. Within typical developer environments, these systems enable the rapid iden - tification and productionizing of machine learning models, simplifying both comprehension  and deployment processes. The genesis of these frameworks can be traced back to innovations  like Auto-WEKA. As one of the early broad-framework attempts, developed at the University of 
+Waikato, it was penned in Java to automate the process for tabular data within the Weka machine  learning suite.
+
+Page 235:
+LLMs for Data Science 212
+Since the release of Auto-Weka, the landscape has vastly diversified with powerful frameworks  such as auto-sklearn, autokeras, NASLib, Auto-PyTorch, TPOT, Optuna, AutoGluon, and Ray 
+(tune). Spawning across various programming languages, these frameworks lend themselves  to an eclectic array of machine learning tasks. More contemporary AutoML advancements have  harnessed neural architecture search techniques to encapsulate vast portions of the ML pipeline,  including unstructured data types like images, video, and audio. Solutions like Google AutoML, 
+Azure AutoML, and H2O’s offering are at the forefront of this revolution, delivering capabilities  that extend ML accessibility to individuals beyond expert data scientists.
+These modern solutions are equipped to adeptly deal with structured formats such as tables  and time series. By conducting elaborate hyperparameter searches, their performance can meet  or even surpass manual interventions. Frameworks such as PyCaret facilitate training multiple  models concurrently with minimal code while maintaining a focus on time series data through  specialized projects like Nixtla’s StatsForecast and MLForecast.
+The attributes characterizing AutoML frameworks are manifold: they provide deployment ca - pacities wherein certain solutions enable direct production embedding, especially cloud-based  ones; others necessitate exportation in formats compatible with platforms like TensorFlow. The  diversity in the data types handled is another facet, with a concentrated focus on tabular data- sets alongside deep learning frameworks catering to assorted data varieties. Several frameworks  highlight explainability as a paramount feature – this is particularly pertinent where regulations  or reliability are at stake in industries like healthcare and finance. Monitoring post-deployment  is another operational feature to ensure sustained model performance over time.
+Despite recent advancements, users are confronted with typical drawbacks associated with such  automated systems. A “black-box” scenario emerges quite frequently yielding difficulties in com - prehending the internal workings, which can impede problem debugging within AutoML models. 
+Moreover, while their impact through time savings and democratization of ML practices makes  machine learning more accessible for those without extensive experience, their efficacy in auto - mating ML tasks can face limitations due to inherent task complexities.
+AutoML has been revitalized with the inclusion of LLMs, as they bring automation to tasks such as  feature selection, model training, and hyperparameter tuning. The impact on privacy is consider - able; AutoML systems that utilize generative models can create synthetic data, reducing reliance  on personal data repositories. In terms of safety, automated systems must be designed with fail- safe mechanisms to prevent the propagation of errors across successive layers of ML workflows. 
+The flexibility offered by AutoML through LLM integration improves competitive performance  by making it possible for non-experts to achieve expert-level model tuning. 
+
+Page 236:
+Chapter 7 213
+With respect to ease of use, while AutoML with integrated LLMs offers simplified interfaces for  model development pipelines, users must grapple with complex choices regarding model selec- tion and evaluation.
+As we’ll see in the next couple of sections, LLMs and tools can significantly accelerate data science  workflows, reduce manual effort, and open up new analysis opportunities. As we’ve seen with 
+Jupyter AI (Jupyternaut chat) – and in Chapter 6, Developing Software with Generative AI – there’s a  lot of potential to increase efficiency by creating software with generative AI (code LLMs). This is  a good starting point for the practical part of this chapter as we investigate the use of generative 
+AI in data science. Let’s start to use agents to run code or call other tools to answer questions!
+Using agents to answer data science questions
+Tools like LLMMathChain  can be utilized to execute Python for answering computational queries. 
+We’ve already seen different agents with tools before.
+For instance, by chaining LLMs and tools, one can calculate mathematical powers and obtain  results effortlessly: from langchain import OpenAI, LLMMathChain llm = OpenAI(temperature= 0) llm_math = LLMMathChain.from_llm(llm, verbose= True) llm_math.run( "What is 2 raised to the 10th power?" )
+We should see something like this:
+> Entering new LLMMathChain chain...
+What is 2 raised to the 10th power?
+2**10 numexpr.evaluate("2**10")
+Answer: 1024
+> Finished chain.
+[2]:'Answer: 1024'
+Such capabilities, while adept at delivering straightforward numerical answers, are not as straight - forward to integrate into conventional EDA workflows. Other chains, like CPAL ( CPALChain )  and PAL ( PALChain ), can tackle more complex reasoning challenges, mitigating the risks of  generative models producing implausible content; yet their practical applications remain elusive  in real-world scenarios.
+
+Page 237:
+LLMs for Data Science 214
+With PythonREPLTool , we can create simple visualizations of toy data or train with synthetic  data, which can be nice for illustration or bootstrapping a project. This is an example from the 
+LangChain documentation: from langchain.agents.agent_toolkits import create_python_agent from langchain.tools.python.tool import PythonREPLTool from langchain.llms.openai import OpenAI from langchain.agents.agent_types import AgentType agent_executor = create_python_agent(
+    llm=OpenAI(temperature= 0, max_tokens= 1000),
+    tool=PythonREPLTool(),
+    verbose= True,
+    agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+) agent_executor.run(
+    """Understand, write a single neuron neural network in PyTorch.
+Take synthetic data for y=2x. Train for 1000 epochs and print every 100  epochs.
+Return prediction for x = 5"""
+)
+This demonstrates constructing a single-neuron neural network using PyTorch, training it with  synthetic data, and making predictions – all performed directly on the user’s machine. However,  caution is advised as executing Python code without safeguards can pose security risks.
+We get this output back, which includes a prediction:
+Entering new AgentExecutor chain...
+I need to write a neural network in PyTorch and train it on the given data
+Action: Python_REPL
+Action Input: import torch model = torch.nn.Sequential(
+    torch.nn.Linear(1, 1)
+) loss_fn = torch.nn.MSELoss() optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+# Define the data x_data = torch.tensor([[1.0], [2.0], [3.0], [4.0]])
+
+Page 238:
+Chapter 7 215 y_data = torch.tensor([[2.0], [4.0], [6.0], [8.0]]) for epoch in range(1000):  # Train the model
+    y_pred = model(x_data)
+    loss = loss_fn(y_pred, y_data)
+    if (epoch+1) % 100 == 0:
+        print(f'Epoch {epoch+1}: {loss.item():.4f}')
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+# Make a prediction x_pred = torch.tensor([[5.0]]) y_pred = model(x_pred)
+Observation: Epoch 100: 0.0043
+Epoch 200: 0.0023
+Epoch 300: 0.0013
+Epoch 400: 0.0007
+Epoch 500: 0.0004
+Epoch 600: 0.0002
+Epoch 700: 0.0001
+Epoch 800: 0.0001
+Epoch 900: 0.0000
+Epoch 1000: 0.0000
+Thought: I now know the final answer
+Final Answer: The prediction for x = 5 is y = 10.00.
+Through iterative training displayed in verbose logs, users witness the progressive reduction of  loss over epochs until a satisfactory prediction is attained. Despite this showcasing how a neural  network learns and predicts over time, scaling this approach in practice would necessitate more  sophisticated engineering efforts.
+LLMs and tools can be useful if we want to enrich our data with category or geographic informa- tion. For example, if our company offers flights from Tokyo, and we want to know the distances  of our customers from Tokyo, we can use WolframAlpha as a tool. Here’s a simplistic example: from langchain.agents import load_tools, initialize_agent from langchain.llms import OpenAI
+
+Page 239:
+LLMs for Data Science 216 from langchain.chains.conversation.memory import ConversationBufferMemory llm = OpenAI(temperature= 0) tools = load_tools([ 'wolfram-alpha' ]) memory = ConversationBufferMemory(memory_key= "chat_history" ) agent = initialize_agent(tools, llm, agent= "conversational-react- description" , memory=memory, verbose= True) agent.run(
+    """How far are these cities to Tokyo?
+* New York City
+* Madrid, Spain
+* Berlin
+""")
+Please make sure you’ve set the OPENAI_API_KEY  and WOLFRAM_ALPHA_APPID  environment variables  as discussed in Chapter 3 , Getting Started with LangChain . Here’s the output:
+> Entering new AgentExecutor chain...
+AI: The distance from New York City to Tokyo is 6760 miles. The distance  from Madrid, Spain to Tokyo is 8,845 miles. The distance from Berlin, 
+Germany to Tokyo is 6,845 miles.
+> Finished chain.
+'
+The distance from New York City to Tokyo is 6760 miles. The distance from 
+Madrid, Spain to Tokyo is 8,845 miles. The distance from Berlin, Germany  to Tokyo is 6,845 miles.
+By combining LLMs with external tools like WolframAlpha, it’s possible to perform more challeng - ing data enrichment, such as calculating distances between cities, such as from Tokyo to New York 
+City, Madrid, or Berlin. Such integrations could significantly enhance the utility of datasets used  in various business applications. Nonetheless, these examples address relatively straightforward  queries; deploying such implementations on a larger scale demands more extensive engineering  strategies beyond those discussed.
+However, we can give agents datasets to work with, and here is where it can get immensely pow - erful when we connect more tools. Let’s ask and answer questions about structured datasets!
+
+Page 240:
+Chapter 7 217
+Data exploration with LLMs
+Data exploration is a crucial and foundational step in data analysis, allowing researchers to gain a  comprehensive understanding of their datasets and uncover significant insights. With the emer - gence of LLMs like ChatGPT, researchers can harness the power of natural language processing  to facilitate data exploration.
+As we mentioned earlier, generative AI models such as ChatGPT have the ability to understand and  generate human-like responses, making them valuable tools for enhancing research productivity. 
+Asking our questions in natural language and getting responses in digestible pieces and shapes  can be a great boost to analysis.
+LLMs can help explore textual data and other forms of data, such as numerical datasets or multi - media content. Researchers can leverage ChatGPT’s capabilities to ask questions about statistical  trends in numerical datasets or even query visualizations for image classification tasks.
+Let’s load up a dataset and work with that. We can quickly get a dataset from scikit-learn: from sklearn.datasets import load_iris df = load_iris(as_frame= True)["data" ]
+The Iris dataset is well known – it’s a toy dataset, but it will help us illustrate the capabilities of  using generative AI for data exploration. We’ll use a DataFrame in the following example. We  can create a pandas DataFrame agent now and we’ll see how easy it is to get simple stuff done! from langchain.agents import create_pandas_dataframe_agent from langchain import PromptTemplate from langchain.llms.openai import OpenAI
+PROMPT = (
+    "If you do not know the answer, say you don't know.\n"
+    "Think step by step.\n"
+    "\n"
+    "Below is the query.\n"
+    "Query: {query}\n"
+) prompt = PromptTemplate(template=PROMPT, input_variables=[ "query"]) llm = OpenAI() agent = create_pandas_dataframe_agent(llm, df, verbose= True)
+
+Page 241:
+LLMs for Data Science 218
+I’ve included instructions for the model to indicate uncertainty and to follow a step-by-step  thought process, with the aim of reducing hallucinations. Now we can query our agent against  the DataFrame: agent.run(prompt. format(query="What's this dataset about?" ))
+We get the answer This dataset is about the measurements of some type of flower ,  which is  correct.
+Let’s show how to get a visualization: agent.run(prompt. format(query="Plot each column as a barplot!" ))
+Here is the plot:
+Figure 7.3: Iris dataset barplots
+The plot is not perfect. The output can be finicky and depends on the llm model parameter and  on the instructions. In this case, I used df.plot.bar(rot=0, subplots=True) . We might want  to introduce more tweaks, for example, to padding between the panels, the font size, or the  placement of the legend, to make this really nice.
+
+Page 242:
+Chapter 7 219
+We can also ask to see the distributions of the columns visually, which will give us this neat plot:
+Figure 7.4: Iris dataset boxplots
+We can request the plot to use other plotting backends, such as Seaborn; however, please note  that these have to be installed.
+We can also ask more questions about the dataset, like which row has the biggest difference  between petal length and petal width. We get the answer with the intermediate steps as follows 
+(shortened): df['difference' ] = df['petal length (cm)' ] - df['petal width (cm)' ] df.loc[df[ 'difference' ].idxmax()]
+Observation: sepal length (cm)    7.7 sepal width (cm)     2.8 petal length (cm)    6.7 petal width (cm)     2.0 difference           4.7
+Name: 122, dtype: float64
+Thought: I now know the final answer
+Final Answer: Row 122 has the biggest difference between petal length and  petal width.
+I think that’s worth a pat on the back, LLM!
+
+Page 243:
+LLMs for Data Science 220
+We could extend this example by adding more instructions to the prompt about plotting, such  as the sizes of plots.
+It’s a bit harder to implement the same plotting logic in a Streamlit app, because we need to use  the plotting functionality in corresponding Streamlit functions, for example, st.bar_chart() . 
+However, this can be done as well. You can find explanations for this on the Streamlit blog ( Building  a Streamlit and scikit-learn app with ChatGPT ).
+What about statistical  tests? agent.run(prompt. format(query="Validate the following hypothesis  statistically: petal width and petal length come from the same  distribution." ))
+We get this response:
+Thought: I should use a statistical test to answer this question.
+Action: python_repl_ast
+Action Input: from scipy.stats import ks_2samp
+Observation:
+Thought: I now have the necessary tools to answer this question.
+Action: python_repl_ast
+Action Input: ks_2samp(df['petal width (cm)'], df['petal length (cm)'])
+Observation: KstestResult(statistic=0.6666666666666666,  pvalue=6.639808432803654e-32, statistic_location=2.5, statistic_sign=1)
+Thought: I now know the final answer
+Final Answer: The p-value of 6.639808432803654e-32 indicates that the two  variables come from different distributions.
+That checks off the statistical test! We can ask complex questions about the dataset with simple  prompts in plain English.
+There’s also the PandasAI library, which uses LangChain under the hood and provides similar  functionality. Here’s an example from the documentation with an example dataset: import pandas as pd from pandasai.llm import OpenAI from pandasai.schemas.df_config import Config from pandasai import SmartDataframe df = pd.DataFrame({
+
+Page 244:
+Chapter 7 221
+    "country" : ["United States" , "United Kingdom" , "France" , "Germany" , 
+"Italy", "Spain" , "Canada" , "Australia" , "Japan" , "China" ],
+    "gdp": [19294482071552 , 2891615567872 , 2411255037952 , 3435817336832 , 
+1745433788416 , 1181205135360 , 1607402389504 , 1490967855104 , 4380756541440 , 
+14631844184064 ],
+    "happiness_index" : [6.94, 7.16, 6.66, 7.07, 6.38, 6.4, 7.23, 7.22, 
+5.87, 5.12]
+}) smart_df = SmartDataframe(df, config=Config(llm=OpenAI())) print(smart_df.chat( "Which are the 5 happiest countries?" ))
+This will give us the requested result similar to before when we were using LangChain directly. 
+Please note that PandasAI is not part of the setup for the book, so you’ll have to install it sepa- rately if you want to use it.
+For data in SQL databases, we can connect with a SQLDatabaseChain . The LangChain documen - tation shows this example: from langchain.llms import OpenAI from langchain.utilities import SQLDatabase from langchain_experimental.sql import SQLDatabaseChain db = SQLDatabase.from_uri( "sqlite:///../../../../notebooks/Chinook.db" ) llm = OpenAI(temperature= 0, verbose= True) db_chain = SQLDatabaseChain.from_llm(llm, db, verbose= True) db_chain.run( "How many employees are there?" )
+We are connecting to a database first. Then we can ask questions about the data in natural language. 
+This can also be quite powerful. An LLM will create the queries for us. I would expect this to be  particularly useful when we don’t know about the schema of the database. The SQLDatabaseChain   can also check queries and autocorrect them if the use_query_checker  option is set.
+By following the outlined steps, we have leveraged the impressive natural language processing  capabilities of LLMs for data exploration. Through loading a dataset, such as the Iris dataset  from scikit-learn, we can use an LLM-powered agent to query about data specifics in accessible,  everyday language. The creation of a pandas DataFrame agent enabled simple analysis tasks and  visualization requests, demonstrating the AI’s capacity to produce plots and specific data insights.
+
+Page 245:
+LLMs for Data Science 222
+We can not only inquire about the nature of the dataset verbally but also command the agent to  generate visual representations such as barplots and boxplots for EDA . Although these visualiza - tions might require additional fine-tuning for aesthetic refinement, they established a groundwork  for analysis. When delving into more nuanced requests, such as identifying disparities between  two data attributes, the agent adeptly added new columns and located pertinent numerical  differences, showing its practical utility in drawing actionable conclusions.
+Efforts extended beyond mere visualization as the application of statistical tests was also explored  through concise English prompts, resulting in articulate interpretations of statistical operations  like KS-tests performed by the agent.
+The capabilities of integrations aren’t limited to static datasets but extend to dynamic SQL data- bases where an LLM can automate query generation, even offering autocorrection for syntactical  errors in SQL statements. This capability particularly shines when schemas are unfamiliar.
+Summary
+Beginning with an examination of AutoML frameworks, this chapter highlighted the value these  systems bring to the entirety of the data science pipeline, facilitating each stage from data prepa - ration to model deployment. We then considered how the integration of LLMs can further elevate  productivity and make data science more approachable for both technical and non-technical  stakeholders.
+Diving into code generation, we saw parallels with software development, as discussed in Chapter 
+6, Developing Software with Generative AI, observing how tools and functions generated by LLMs  can respond to queries or enhance datasets through augmentation techniques. This included  leveraging third-party tools like WolframAlpha to add external data points to existing datasets. 
+Our exploration then shifted toward the use of LLMs for data exploration, building upon the  techniques for ingesting and analyzing voluminous textual data detailed in Chapter 4, Building 
+Capable Assistants, on question answering. Here, our focus turned to structured datasets, examining  how SQL databases or tabular information could be effectively analyzed through LLM-powered  exploratory processes.
+To sum up our exploration, it is clear that AI technologies, illustrated by platforms such as ChatGPT  plugins and Microsoft Fabric, hold transformative potential for data analysis. However, despite  the remarkable strides in enabling and enhancing the work of data scientists through these AI  tools, the current state of AI technology isn’t at a point where it can supplant human experts but  rather augments their capabilities and broadens their analytical toolset.
+
+Page 246:
+Chapter 7 223
+In the next chapter, we’ll focus on conditioning techniques to improve the performance of LLMs  through prompting and fine-tuning.
+Questions
+Please have a look to see if you can come up with the answers to these questions from memory. 
+I recommend you go back to the corresponding sections of this chapter if you are unsure about  any of them:
+1. What steps are involved in data science?
+2. Why would we want to automate data science/analysis?
+3. How can generative AI help data scientists?
+4. What kind of agents and tools can we use to answer simple questions?
+5. How can we get an LLM to work with data?
+Join our community on Discord
+Join our community’s Discord space for discussions with the authors and other readers: https://packt.link/lang
+
+Page 247:
+################################################################################
+10
+The Future of Generative Models
+In this book, so far, we have discussed generative models for building applications, and we have  implemented a few simple ones – for example, for semantic search, applications for content  creation, customer service agents, and assistants for developers and data scientists. We have  explored techniques such as tool use, agent strategies, semantic search with retrieval augmented  generation, and the conditioning of models with prompts and fine-tuning.
+In this chapter, we’ll deliberate on where this leaves us and where the future leads us. We’ll consid - er weaknesses and socio-technical challenges of generative models, and strategies for mitigation  and improvement. We’ll focus on value creation opportunities, where unique customization of  foundation models for specific use cases stands out. It remains uncertain which entities – big  tech firms, start-ups, or foundation model developers – will capture the most upsides. We’ll also  evaluate and address concerns such as the extinction threat through AI.
+Given the massive potential for increased productivity in various industries, venture funding for  generative AI start-ups skyrocketed in 2022 and 2023, and major players like Salesforce and Ac- centure among many others have made big commitments to generative AI with multibillion-dollar  investments. We’ll discuss potential effects on jobs in multiple industries, and disruptive changes  in creative industries, education, law, manufacturing, medicine, and the military.
+We will evaluate and address concerns such as misinformation, cybersecurity, privacy, and fair- ness, and think about how the changes and disruptions brought about by generative AI should  influence regulations and practical implementation.
+
+Page 323:
+The Future of Generative Models 300
+The main sections of this chapter are:
+• The current state of generative AI
+• Economic consequences
+• Societal implications
+Let’s start with the current state of models and their capabilities.
+The current state of generative AI
+As discussed in this book, in recent years, generative AI models have attained new milestones in  producing human-like content across modalities including text, images, audio, and video. Leading   models like OpenAI’s GPT-4 and DALL-E 2, and Anthropic’s Claude display impressive fluency  in content generation, be it textual or creative visual artistry.
+Between 2022 and 2023, models have progressed in strides. If generative models were previously  capable of producing barely coherent text or grainy images, now we see high-quality 3D images,  videos, and the generation of coherent and contextually relevant prose and dialogue, rivaling or  even surpassing the fluency levels of humans. These AI models leverage gargantuan datasets and  computational scale, enabling them to capture intricate linguistic patterns, display a nuanced  understanding of knowledge about the world, translate texts, summarize content, answer natural  language questions, create appealing visual art, and acquire the capability to describe images. 
+Seemingly by magic, the AI-generated outputs mimic human ingenuity – painting original art,  writing poetry, producing human-level prose, and even engaging in sophisticated aggregation  and synthesis of information from diverse sources.
+But let’s be a bit more nuanced! Generative models come with weaknesses as well as strengths. 
+Deficiencies persist compared to human cognition, including the frequent generation of plausible  yet incorrect or nonsensical statements. Hallucinations show a lack of grounding in reality, given  that they are based on patterns in data rather than an understanding of the real world. Further,  models exhibit difficulties performing mathematical, logical, or causal reasoning. They are easily  confused by complex inferential questions, which could limit their applicability in certain fields  of work. The black box problem of lack of explainability for outputs as well as for the models  themselves hampers troubleshooting efforts, and controlling model behaviors within desired  parameters remains challenging. AI can have serious bias issues because of the prejudiced data  they are trained on. This can lead to unfair results and make social inequalities worse.
+
+Page 324:
+Chapter 10 301
+Here is a table summarizing the key strengths and deficiencies of current generative AI compared  to human cognition:
+Category Human Cognition Generative AI Models
+Language FluencyContextually relevant, draws  meaning from world knowledgeHighly eloquent, reflects linguistic  patterns
+KnowledgeConceptual understanding derived  from learning and experienceStatistical synthesis lacking  grounding
+CreativityOriginality reflecting personality  and talentImaginative but within training  distribution
+Factual AccuracyUsually aligns with truth and  physical realityHallucinations reflecting training  data biases
+ReasoningIntuitive yet can apply heuristics  after trainingLogic is tightly limited to training  distribution
+BiasSometimes recognizes and can  override inherent biasesPropagates systemic biases in data
+TransparencyPartial, subjective insights from  think-aloud techniquesPlausible reasoning from chain-of- thought prompts
+Table 10.1: Strengths and deficiencies of LLMs
+While LLMs such as GPT-4 showcase language fluency on parity with humans, their lack of  grounding, tendency for distortion, opaqueness, and potential for harm underscore deficiencies  that temper the promise of generative AI. Progress in domains like logical reasoning and bias  mitigation remains at an early stage. As for transparency, while immense complexity poses an  immense challenge, determined efforts seek to surface the lineage and mechanisms of reasoning  for both humans (advances in the understanding of neurocognition) and AI (interpretability and  explainability). Addressing problematic areas is key to developing reliable and trustworthy sys- tems. Throughout the book, we’ve discussed and implemented potential solutions that address  the weaknesses of generative AI.
+We should keep in mind, however, that this gap analysis of human versus AI is for highlighting  areas of improvement – as we have seen in domains such as Atari games, chess, and Go, AIs can  reach superhuman levels if trained properly, and we haven’t touched the ceiling yet in many ar- eas. Let’s look more broadly at some of the socio-technical challenges involved in unlocking the  capabilities of generative AI systems and discuss approaches to overcoming them!
+
+Page 325:
+The Future of Generative Models 302
+Challenges
+The profound potential of generative AI systems indicates an exciting future if development con- tinues at pace. This table shows a summary of a few of the technical and organizational challenges  together with approaches to tackle them:
+Challenge Potential Solutions
+Knowledge Freshness (+ Concept Drift)Continuous learning methods like elastic weight  consolidation, stream ingestion pipelines, and  efficient retraining procedures
+Specialized KnowledgeTask-specific demonstrations and prompting,  knowledge retrieval and grounding, and context  expansion
+Downstream AdaptabilityStrategic fine-tuning methods, catastrophic  forgetting mitigation, and optimized hardware access
+Biased OutputsBias mitigation algorithms, balanced training data,  audits, inclusivity training, and interdisciplinary  research
+Harmful Content GenerationModeration systems, interruption and correction, and  conditioning methods such as RLHF
+Logical InconsistenciesHybrid architectures, knowledge bases, and retrieval  augmentation
+Factual InaccuraciesRetrieval augmentation, knowledge bases, and  consistent knowledge base updating
+Lack of ExplainabilityModel introspection, concept attribution, and  interpretable model designs
+Privacy RisksDifferential privacy, federated learning, encryption,  and anonymization
+High Latency and Compute CostsModel distillation, optimized hardware, and efficient  model design
+Licensing LimitationsOpen/synthetic data, custom data, and fair licensing  agreements
+Security/VulnerabilitiesAdversarial robustness and cybersecurity best  practices
+
+Page 326:
+Chapter 10 303
+GovernanceCompliance frameworks and ethical development  governance
+Table 10.2: Challenges of generative AI and potential solutions
+Challenges of generative AI go beyond just improving content generation—they encompass en - vironmental sustainability, algorithmic equity, and individual privacy. Strategies like employing  simplified model architectures, using knowledge distillation, and developing specialized hardware  are critical to reducing the carbon footprint of AI in the face of rapid progress. To ensure fair AI,  steps such as incorporating balanced datasets, applying bias mitigation algorithms, enforcing  fairness through constrained optimization, and promoting inclusivity are essential, despite their  complexity.
+To counteract potential harm from AI output, such as toxicity or false information (hallucination),  techniques like reinforcement learning guided by human feedback and grounding responses in  verified knowledge can be employed. Additionally, securing sensitive data through privacy-pre - serving methods like differential privacy, federated learning, and real-time content correction is  fundamental for upholding user dignity.
+Finally, staying up to date with the evolving informational landscapes, comprehending specialized  domains, and flexibly adapting to emerging needs represent newly visible obstacles as generative  models permeate real-world contexts.
+Addressing these challenges involves a broad spectrum of responses that must consider the entire  life cycle of AI development. Such responses include innovative training objectives focused on  consistency, structural knowledge integrations, and design of models for better controllability,  as well as software and hardware optimization for infrastructure efficiency.
+One of the most effective developments is flexible user control. With concerted effort in research  and development, the aim is to steer generative AI toward alignment with societal values. For  reasons of computational efficiency and costs, this implies a shift from pretraining to specialized  downstream conditioning (particularly, fine-tuning and prompt techniques). This, in turn, will  lead to a proliferation of start-ups applying core AI technologies.
+Technological innovation together with regulation and transparency of AI development will  ensure that generative AI enhances human capability without compromising ethical standards. 
+Looking ahead, generative AI systems are poised to become more powerful and multifaceted.
+Let’s have a look at some emerging trends in model development!
+
+Page 327:
+The Future of Generative Models 304
+Trends in model development
+The current doubling time in training compute of very large models is about 8 months, outstrip - ping scaling laws such as Moore’s Law (transistor density at cost increases at a rate of currently  about 18 months) and Rock’s Law (costs of hardware like GPUs and TPUs halve every 4 years). 
+This graph illustrates this trend in training compute of large models (source: Epoch, Parameter, 
+Compute, and Data Trends in Machine Learning. Retrieved from https://epochai.org/mlinputs/ visualization ):
+Figure 10.1: Training FLOPs of notable AI systems
+The main point from this graph is the increase in compute, which is apparent since the 1960s,  and the Cambrian explosion of models of the deep learning era at the top right. As discussed  in Chapter 1, What Is Generative AI?, parameter sizes for large systems have been increasing at a  similar rate as the training compute, which means we could see much larger and more expensive  systems if this growth continues.
+Empirically derived scaling laws predict the performance of LLMs based on the given training  budget, dataset size, and the number of parameters. This could mean that highly powerful sys- tems will be concentrated in the hands of Big Tech.
+
+Page 328:
+Chapter 10 305
+However, future progress may depend more on data efficiency and model quality than sheer  size. Though massive models grab headlines, computing power and energy constraints put a  limit on unrestrained model growth. It’s also unclear if performance will keep up further with  the growth in parameters. The future could see the co-existence of massive, general models with  smaller and more accessible specialized niche models that provide faster and cheaper training,  maintenance, and inference.
+It has already been shown that smaller specialized models can prove highly performant. As men- tioned in Chapter 6, Developing Software with Generative AI, we’ve recently seen models such as  phi-1 (Textbooks Are All You Need , 2023, Gunasekar and colleagues), with about 1 billion parameters,  that – despite its smaller scale – achieve high accuracy on evaluation benchmarks. The authors  suggest that improving data quality can dramatically change the shape of scaling laws.
+Further, there is a body of work on simplified model architectures, which have substantially fewer  parameters and only modestly drop accuracy (for example, One Wide Feedforward is All You Need , 
+Pessoa Pires and others, 2023). Additionally, techniques such as fine-tuning, distillation, and  prompting techniques can enable smaller models to leverage the capabilities of large foundations  without replicating their costs. To compensate for model limitations, tools like search engines  and calculators have been incorporated into agents, and multi-step reasoning strategies, plugins,  and extensions may be increasingly used to expand capabilities.The KM scaling law, proposed by Kaplan and colleagues, derived through empirical  analysis and fitting of model performance with varied data sizes, model sizes, and  training compute, presents power-law relationships, indicating a strong codepen - dence between model performance and factors such as model size, dataset size, and  training compute.
+The Chinchilla scaling law, developed  by the Google DeepMind team, involved ex - periments with a wider range of model sizes and data sizes and suggests an optimal  allocation of compute budget to model size and data size, which can be determined  by optimizing a specific loss function under a constraint.
+
+Page 329:
+The Future of Generative Models 306
+The rapidly decreasing costs of AI model training represent a significant shift in the landscape,  enabling broader participation in cutting-edge AI research and development. As noted, several  factors are contributing to this trend, including optimization of training regimes, improvements  in data quality, and the introduction of novel model architectures. Here is a brief summary of  techniques and approaches for making generative AI more accessible and effective:
+• Simplified model architectures : Streamlining model design for easier management, better   interpretability, and lower computational cost.
+• Synthetic data generation : Creating artificial training data to augment datasets while  preserving privacy.
+• Model distillation: Transferring knowledge from a large model into a smaller, more ef- ficient one for easy deployment.
+• Optimized inference engines : Software frameworks that increase the speed and efficiency  of executing AI models on a given hardware.
+• Dedicated AI hardware accelerators: Specialized hardware like GPUs and TPUs that  dramatically accelerate AI computations.
+• Open-source and synthetic data: High-quality public datasets enable collaboration and  synthetic data enhances privacy and can help reduce bias.
+• Quantization : Converting models to lower precision by reducing bit sizes of weights and  activations, decreasing model size and compute costs.
+• Incorporating knowledge bases : Grounding model outputs in factual databases reduces  hallucinations and improves accuracy.
+• Retrieval augmented generation: Enhancing text generation by retrieving relevant in - formation from sources.
+• Federated learning: Training models on decentralized data to improve privacy while  benefiting from diverse sources.
+Among the technical advancements helping drive down these costs, quantization techniques have   emerged as an essential contributor. Open-source datasets and techniques such as synthetic data  generation further democratize access to AI training by providing high-quality and data-efficient  model development and removing some reliance on vast, proprietary datasets. Open-source ini - tiatives contribute to the trend by providing cost-effective, collaborative platforms for innovation.
+
+Page 330:
+Chapter 10 307
+These innovations collectively lower barriers that have so far impeded real-world generative AI  adoption across various segments:
+• Financial barriers are reduced by compressing large model performance into far smaller  form factors through quantization and distillation.
+• Privacy risks are mitigated via federated and synthetic techniques circumventing exposure.
+• The accuracy limitations hampering small models are relieved through grounding gen - eration with external information.
+• Specialized hardware exponentially accelerates throughput while optimized software  maximizes the existing infrastructure.
+• Democratizing access by tackling constraints like cost, security, and reliability unlocks  benefits for vastly expanded audiences, steering generative creativity from a narrow con- centration toward empowering diverse human talents.
+The landscape is shifting from a focus on sheer model size and brute-force compute to clever, nu- anced approaches that maximize computational efficiency and model efficacy. With quantization  and related techniques lowering barriers, we’re poised for a more diverse and dynamic era of AI  development where resource wealth is not the only determinant of leadership in AI innovation.
+This could mean a democratization of the market, as we’ll see now.
+Big Tech vs. small enterprises
+As for the spread of technology, two primary scenarios exist. In the centralized scenario, generative 
+AI and LLMs are primarily developed and controlled by large tech firms that invest heavily in the  necessary computational hardware, data storage, and specialized AI/ML talent. Entities like these  benefit from economies of scale and resources that allow them to bear the high costs of training  and maintaining these sophisticated systems. They produce general models that are often made  accessible to others through cloud services or APIs, but these one-size-fits-all solutions may not  perfectly align with the requirements of every user or organization.
+Conversely, in the self-service scenario, companies or individuals take on the task of training their  own AI models. This approach allows for models that are customized to the specific needs and pro - prietary data of the user, providing more targeted and relevant functionality. However, this route  traditionally requires significant AI expertise, substantial computational resources, and rigorous  data privacy safeguards, which can be prohibitively expensive and complex for smaller entities.
+
+Page 331:
+The Future of Generative Models 308
+The central question is how these scenarios will coexist and evolve. Presently, the centralized  approach dominates due to the barriers in cost and expertise required for the self-service model. 
+Yet with the democratization of AI – driven by declining computational costs, more widespread 
+AI training and tools, and innovations that simplify model training – the self-service scenario  may become increasingly viable for smaller organizations, local governments, and community  groups. These groups could potentially harness tailored AI solutions for highly specific tasks,  gaining advantages in agility and privacy preservation.
+As these two business models continue to develop, a hybrid landscape may emerge where both  approaches fulfill distinct roles based on use cases, resources, expertise, and privacy considerations. 
+Large firms might continue to excel in providing industry-specific models, while smaller entities  could increasingly train or fine-tune their own models to meet niche demands. The evolution of  this landscape will largely depend on the pace of advancements that make AI more accessible,  more cost-effective, and simpler to use without compromising robustness or privacy.
+If robust tools emerge to simplify and automate AI development, custom generative models may  even be viable for local governments, community groups, and individuals to address hyper-local  challenges. While centralized Big Tech firms benefit currently from economies of scale, distributed  innovation from smaller entities could unlock generative AI’s full potential across all sectors of  society.
+While large tech firms currently dominate generative AI research and development, smaller entities  may ultimately stand to gain the most from these technologies. As costs decline for computing,  data storage, and AI talent, custom pre-training of specialized models could become feasible for  small and mid-sized companies.
+In a timeframe of 3–5 years, constraints around computing and talent availability could ease  considerably, eroding the centralized moat created by massive investments. Specifically, if cloud  computing costs decline as projected, and AI skills become more widespread through education  and automated tools, self-training customized LLMs may become feasible for many companies.
+Rather than relying on generic models from Big Tech, tailored generative AI fine-tuned on niche  datasets could better serve unique needs. Start-ups and non-profits often excel at rapidly iterat - ing to build cutting-edge solutions for specialized domains. Democratized access through cost  reductions could enable such focused players to train performant models exceeding the capa - bilities of generalized systems.
+In the next section, we’ll discuss the  potential of Artificial General Intelligence (AGI ) and the  threat of extinction by the malicious actions of a superintelligent artificial entity.
+
+Page 332:
+Chapter 10 309
+Artificial General Intelligence
+Not all abilities in LLMs scale predictably with model size. Capabilities such as in-context learn - ing may remain exclusive to particularly large models due to factors beyond raw computational  growth. There’s speculation that sustained scaling – training vast models on even larger data- sets – might lead to broader skill sets and, some suggest, toward the development of AGI with  reasoning abilities on par or  beyond humans.
+Nevertheless, current neuroscientific perspectives and the limitations of existing AI structures  provide compelling arguments against an imminent leap to AGI (inspired by the discussion in  the article The feasibility of artificial consciousness through the lens of neuroscience  by Jaan Aru and  others; 2023):
+• Lack of embodied, embedded information : The current generation of LLMs lacks multi - modal and embodied experiences, being trained predominantly on textual data. In contrast,  human common sense and understanding of the physical world are developed through  rich, diverse interactions involving multiple senses.
+• Different architecture from biological brains: The relatively simple stacked transform- er architecture used in models like GPT-4 lacks the complex recurrent and hierarchical  structures of the thalamocortical system thought to enable consciousness and general  reasoning in humans.
+• Narrow capabilities: Existing models remain specialized for particular domains like text  and fall short in flexibility, causal reasoning, planning, social skills, and general prob - lem-solving intelligence. This could change either with increasing tool use or with fun- damental changes to the models.
+• Minimal social abilities or intent : Current AI systems have no innate motivations, social  intelligence, or intent beyond their training objectives. Fears of malicious goals or desire  for domination seem unfounded.
+• Limited real-world knowledge: Despite ingesting huge datasets, the factual knowledge  and common sense of large models remain very restricted compared to humans. This  impedes applicability in the physical world.
+• Data-driven limitations : Reliance on pattern recognition from training data rather than  structured knowledge makes reliable generalization to novel situations difficult.
+As we address pressing AI challenges, the discourse around AI’s threat and its potential for societal  disruption should not overshadow immediate issues like fairness and privacy. 
+
+Page 333:
+The Future of Generative Models 310
+Given current model limitations and the lack of agency, the notion of today’s AI rapidly evolving  into a dangerous superintelligence appears highly unlikely. In formulating regulations, we must  be vigilant against regulatory capture, where dominant industry players invoke far-fetched sce - narios of AI-driven destruction to distract from pressing concerns  and to shape rules to fit their  interests, potentially marginalizing the concerns of smaller entities and the public. Nonetheless,  ongoing attention to safety research and ethical concerns is essential, especially as AI advances.
+Let’s discuss the broader economy, and – the elephant in the room – jobs!
+Economic consequences
+Integrating generative AI promises immense productivity gains through automating tasks across  sectors – albeit risking workforce disruptions given the pace of change. Assuming computing  scales sustainably, projections estimate 30–50% of current work activities will be automatible  by 2030, adding $6–8 trillion annually to global GDP. Sectors like customer service, marketing,  software engineering, and R&D may see over 75% of use case value. However, past innovations  ultimately spawned new occupations, suggesting long-term realignment.
+Developed regions are likely to witness faster uptake, displacing administrative, creative, and  analytical roles initially. Yet automation extends beyond employment loss – at present, under 
+20% of US worker tasks seem automatable directly through LLMs. But LLM-enhanced software  could transform 50% of tasks, affirming the force multiplication from complementary innovations.
+Thus automation’s labor impact remains complex – while augmenting productivity, transitional  pains persist. Still, the virtuous cycle between AI progress and emerging specializations signals  hopes for an uplift over redundancy. And braiding priorities of sustainability, equity, and human  dignity throughout this transformation promises optimizing empowerment over exploitation.
+In a professional context, generative AI is poised to amplify human creativity and transform  traditional workflows across a range of industries. For content creators, such as marketers and  journalists, AI can rapidly generate initial drafts, fostering a baseline that human creativity can  build upon for more customized outputs. Software developers benefit from AI’s ability to produce  code snippets, helping to expedite the development process. For scholars and scientists, the ability  of AI to distill complex research into comprehensive summaries can catalyze scholarly progress  and innovation.
+
+Page 334:
+Chapter 10 311
+Here are some key predictions about how jobs may be impacted by advances in language models  and generative AI:
+• Routine legal work like draft preparation will be increasingly automated, changing job  roles for junior lawyers and paralegals.
+• Software engineering will see a rise in AI coding assistants handling mundane tasks, en - abling developers to focus on complex problem-solving.
+• Data scientists will spend more time refining AI systems rather than building predictive  models from scratch.
+• Demand for specialized roles like prompt engineering will continue to rise.
+• Teachers will utilize AI for course preparation and personalized student support.
+• Journalists, paralegals, and graphic designers will employ generative AI to enhance content  creation, raising concerns about job impacts.
+• Demand will grow for experts in AI ethics, regulations, and security to oversee responsible  development.
+• Musicians and artists will collaborate with AI, boosting creative expression and acces - sibility.
+• Striking an optimal balance between AI capabilities and human judgment will be vital  across sectors.
+• The common thread is that while routine tasks face increasing automation, human ex - pertise to steer AI directions and ensure responsible outcomes will remain indispensable.
+While certain jobs may be displaced by AI in the near term, especially routine cognitive tasks, it  may automate certain activities rather than eliminate entire occupations. Technical experts like  data scientists and programmers will remain key to developing AI tools and realizing their full  business potential. By automating rote tasks, models may free up human time for higher-value  work, boosting economic output.
+Concerns have emerged about saturation as generative AI tools are relatively easy to build using  foundation models. Customization of models and tools will allow value creation, but it’s unclear  who will capture the most upsides and how powerful these applications can be. While current  market hype is high, investors are tempering decisions given lower valuations and skepticism  following the 2021 AI boom/bust cycle. The long-term market impact and the winning generative 
+AI business models have yet to unfold.
+
+Page 335:
+The Future of Generative Models 312
+As AI models become more sophisticated and economical to operate, we can anticipate a sub - stantial proliferation of generative AI and LLM applications into novel domains. Beyond just the  plummeting hardware expenses that have historically followed Moore’s Law, there are additional  economies of scale affecting AI systems.
+In Chapter 1, What Is Generative AI?, we discussed the pertinent trend in the AI industry that en - compasses gains in efficiency stemming from the iterative refinement of code, the development  of sophisticated tools, and the enhancement of techniques. The improved efficiency because of  new techniques and approaches, combined with the declining hardware costs, fosters a virtu - ous cycle: as costs diminish, AI adoption widens, in turn spurring further cost reductions and  efficiency improvements. What emerges is a feedback loop where each iteration of efficiency  catalyzes increased usage, which in itself leads to even greater efficiency – a dynamic poised to  dramatically advance the frontier of AI capabilities.The 2021 AI boom/bust cycle refers to a rapid acceleration in investment and growth  in the AI start-up space followed by a market cooldown and stabilization in 2022 as  projections failed to materialize and valuations declined.
+Here’s a quick summary:
+• Boom phase (2020-2021): There was huge interest and skyrocketing invest - ment in AI start-ups offering innovative capabilities like computer vision,  natural language processing, robotics, and machine learning platforms. To - tal funding for AI start-ups hit record levels in 2021, with over $73 billion  invested globally according to Pitchbook. Hundreds of AI start-ups were  founded and funded during this period.
+• Bust phase (2022): In 2022, the market underwent a correction, with val - uations of AI start-ups falling significantly from their 2021 highs. Several  high-profile AI start-ups like Anthropic and Cohere faced valuation mark - downs. Many investors became more cautious and selective with funding 
+AI start-ups. Market corrections in the broader tech sector also contributed  to the bust.
+• Key factors: Excessive hype, unrealistic growth projections, historically high  valuations in 2021, and broader economic conditions all contributed to the  boom-bust cycle. The cycle followed a classic pattern seen previously in  sectors like dot-com and blockchain.
+
+Page 336:
+Chapter 10 313
+Let’s look at various sectors where generative models will have profound near-term impacts,  starting with creative endeavors.
+Creative industries and advertising
+The gaming and entertainment industries are leveraging generative AI to craft uniquely immersive  user experiences. Major efficiency gains from automating creative tasks could increase leisure time  spent online. Generative AI can enable machines to generate new and original content, such as art,  music, and literature, by learning from patterns and examples. This has implications for creative  industries, as it can enhance the creative process and potentially create new revenue streams. It  also unlocks new scales of personalized, dynamic content creation for media, film, and advertising.
+For media, film, and advertising, AI unlocks new scales of personalized, dynamic content creation. 
+In journalism, automated article generation using massive datasets can free up reporters to focus  on more complex  investigative stories. AI-Generated Content  (AIGC ) is playing a growing role in  transforming media production and delivery by enhancing efficiency and diversity. In journalism,  text generation tools automate writing tasks traditionally done by human reporters, significant - ly boosting productivity while maintaining timeliness. Media outlets like the Associated Press  generate thousands of stories per year using AIGC. Robot reporters like the Los Angeles Times 
+Quakebot can swiftly produce articles on breaking news.
+Other applications include Bloomberg News’ Bulletin service where chatbots create personalized  one-sentence news summaries. AIGC also enables AI news anchors that co-present broadcasts  with real anchors by mimicking human appearance and speech from text input. Chinese news  agency Xinhua’s virtual presenter Xin Xiaowei is an example, presenting broadcasts from different  angles for an immersive effect.
+AIGC is transforming movie creation from screenwriting to post-production. AI screenwriting  tools analyze data to generate optimized scripts. Visual effects teams blend AI-enhanced digital  environments and de-aging with live footage for immersive visuals. Deep fake technology rec- reates or revives characters convincingly.
+AI also powers automated subtitle generation, even predicting dialogue in silent films by training  models on extensive audio samples. This expands accessibility via subtitles and recreates voice - overs synchronized to scenes. In post-production, AI color grading and editing tools like Colourlab 
+AI and Descript simplify processes like color correction using algorithms.
+
+Page 337:
+The Future of Generative Models 314
+In advertising, AIGC unlocks new potential for efficient, customized advertising creativity and  personalization. AI-generated content allows advertisers to create personalized, engaging ads  tailored to individual consumers at scale. Platforms like Creative Advertising System (CAS ) and 
+Smart Generation System Personalized Advertising Copy  (SGS-PAC) leverage data to automat - ically generate ads with messaging targeted to specific user needs and  interests.
+AI also assists in advertising creativity and design – tools like Vinci produce customized attrac- tive posters from product images and slogans, while companies like Brandmark.io generate logo  variations based on user preferences. GAN technologies automate product listing generation  with keywords for effective peer-to-peer marketing. Synthetic ad production is also on the rise,  enabling highly personalized, scalable campaigns that save time.
+In music, tools like Google’s Magenta, IBM’s Watson Beat, and Sony CSL’s Flow Machine can  generate original melodies and compositions. AIVA similarly creates unique compositions from  parameters tuned by users. LANDR’s AI mastering uses machine learning to process and improve  digital audio quality for musicians.
+In visual arts, MidJourney uses neural networks to generate inspirational images that can kick - start painting projects. Artists have used its outputs to create prize-winning works. DeepDream’s  algorithm imposes patterns on images, creating psychedelic art. GANs can generate abstract  paintings converging on a desired style. AI painting conservation analyzes artwork to digitally  repair damage and restore pieces.
+Animation tools like Adobe’s Character Animator and Anthropic’s Claude can help with the gen- eration of customized characters, scenes, and motion sequences, opening animation potential  for non-professionals. ControlNet adds constraints to steer diffusion models, increasing output  variability.
+For all these applications, advanced AI expands creative possibilities through both generative  content and data-driven insights. In all cases, quality control and properly attributing the contri- butions of human artists, developers, and training data remains an ongoing challenge as adoption  spreads.
+
+Page 338:
+Chapter 10 315
+Education
+One potential near-future scenario is that the rise of personalized AI tutors and mentors could  democratize access to education for high-demand skills aligned with an AI-driven economy. In  the education sector, generative AI is already transforming how we teach and learn. Tools like 
+ChatGPT can be used to automatically generate personalized lessons and customized content for  individual students. This reduces instructor workloads substantially by automating repetitive  teaching tasks. AI tutors provide real-time feedback on student writing assignments, freeing up  teachers to focus on more complex skills. Virtual simulations powered by generative AI can also  create engaging, tailored learning experiences adapted to different learners’ needs and interests.
+However, risks around perpetuating biases and spreading misinformation need to be studied  further as these technologies evolve. The accelerating pace of knowledge and the obsolescence  of scientific findings mean that training children’s curiosity-driven learning should focus on  developing the cognitive mechanisms involved in initiating and sustaining curiosity, such as  awareness of knowledge gaps and the use of appropriate strategies to resolve them.
+While AI tutors tailored to each student could enhance outcomes and engagement, poorer schools  may be left behind, worsening inequality. Governments should promote equal access to prevent  generative AI from becoming a privilege of the affluent. Democratizing opportunity for all stu- dents remains vital.
+If implemented thoughtfully, personalized AI-powered education could make crucial skills ac- quisition accessible to anyone motivated to learn. Interactive AI assistants that adapt courses to  students’ strengths, needs, and interests could make learning efficient, engaging, and equitable. 
+However, challenges around access, biases, and socialization need addressing.
+Law
+Generative models like LLMs can automate routine legal tasks such as contract review, documen - tation generation, and brief preparation. They also enable faster, comprehensive legal research  and analysis. Additional applications include explaining complex legal concepts in plain language  and predicting litigation outcomes using case data. However, responsible and ethical use remains  critical given considerations around transparency, fairness, and accountability. Overall, properly  implemented AI tools promise to boost legal productivity and access to justice while requiring  ongoing scrutiny regarding reliability and ethics.
+
+Page 339:
+The Future of Generative Models 316
+Manufacturing
+In the automotive sector, generative models are employed to generate 3D environments for simu - lations and aid in the development of cars. Additionally, generative AI is utilized for  road-testing  autonomous vehicles using synthetic data. These models can also process object information  to comprehend the surrounding environment, understand human intent through dialogues,  generate natural language responses to human input, and create manipulation plans to assist  humans in various tasks.
+Medicine
+A model that can accurately predict physical properties from gene sequences would represent a  major breakthrough in medicine and could have profound impacts on society. It could further   accelerate drug discovery and precision medicine, enable earlier disease prediction and prevention,  provide a deeper understanding of complex diseases, and improve gene therapies. However, it also  raises major ethical concerns around genetic engineering and could exacerbate social inequalities.
+New techniques with neural networks are already employed to lower long-read DNA sequencing  error rates (Baid and colleagues; DeepConsensus improves the accuracy of sequences with a gap-aware  sequence transformer , September 2022), and, according to a report by ARK Investment Manage - ment (2023), in the short term, technology like this can make it already possible to deliver the  first high-quality, whole long-read genome for less than $1,000. This means that large-scale  gene-to-expression models might not be far away either.
+Military
+Militaries worldwide are investing in research to develop Lethal Autonomous Weapons Systems 
+(LAWS ). Robots and drones can identify targets and deploy lethal force without any human su- pervision. Machines can process information and react faster than humans, removing emotion  from lethal decisions. However, this raises significant moral questions. Allowing machines to  determine whether lives should be taken crosses a troubling threshold. Even with sophisticated 
+AI, complex factors in war like proportionality and distinction between civilians and combatants  require human judgment.
+If deployed, completely autonomous lethal weapons would represent an alarming step toward  relinquishing control over life-and-death decisions. They could violate international humanitarian  law or be used by despotic regimes to terrorize populations. Once unleashed fully independently,  the actions of autonomous killer robots would be impossible to predict or restrain.
+
+Page 340:
+Chapter 10 317
+The advent of highly capable generative AI will likely transform many aspects of society in the  coming years beyond the economics and the disruption of certain jobs. Let’s think a bit more  broadly about the societal impact!
+Societal implications
+As generative models continue to develop and add value to businesses and creative projects,  generative AI will shape the future of technology and human interaction across domains. While  their widespread adoption brings forth numerous benefits and opportunities for businesses and  individuals, it is crucial to address the ethical and societal concerns that arise from increasing  reliance on AI models in various fields.
+Generative AI offers immense potential benefits across personal, societal, and industrial realms if  deployed thoughtfully. At a personal level, these models can enhance creativity and productivity,  and increase accessibility to services like healthcare, education, and finance. By democratizing  access to knowledge resources, they can help students learn or aid professionals in making deci- sions by synthesizing expertise. As virtual assistants, they provide instant, customized information  to facilitate routine tasks.
+From a consumer standpoint, generative AI has the potential to deliver unprecedented person- alization. Recommendation systems can fine-tune their outputs to individual preferences. Mar- keting efforts can be adapted to specific customer segments and local tastes while maintaining  consistency and scale.
+The rise of generative AI represents a significant milestone within a broader societal trend of how  creative content is being generated and consumed. The internet has already nurtured a culture  of remixing, where derivative works and co-creation are the norms. Generative AI fits naturally  within this paradigm by creating new content through the recombination of existing digital  materials, promoting the ethos of shared, iterative creation.
+However, the capacity of generative AI to synthesize and remix copyrighted materials at scale  presents intricate legal and ethical challenges. The training of these models on extensive corpora  that encompass literature, articles, images, and other copyrighted works creates a tangled web  for attribution and compensation. Existing tools struggle to identify content generated by AI,  which complicates efforts to apply traditional copyright and authorship principles. This dilemma  underscores the urgent need for legal frameworks that can keep pace with technological advances  and navigate the complex interplay between rights-holders and AI-generated content.
+
+Page 341:
+The Future of Generative Models 318
+One of the major problems that I can see is misinformation, either in the interest of political  interest groups, foreign actors, or large corporations. Let’s discuss this threat!
+Misinformation and cybersecurity
+AI presents a dual-edged sword against disinformation. While it enables scalable detection, auto - mation makes it easier to spread sophisticated, personalized propaganda. AI could help or harm  security depending on whether it is used responsibly. It increases vulnerabilities to misinformation  along with cyberattacks using generative hacking and social engineering.
+There are significant threats associated with AI techniques like micro-targeting and deepfakes. 
+Powerful AI can profile users psychologically to deliver personalized disinformation that facili - tates concealed manipulation, escaping broad examination. Big Data and AI could be leveraged to  exploit psychological vulnerabilities and infiltrate online forums to attack and spread conspiracy  theories.
+Disinformation has transformed into a multifaceted phenomenon, involving biased information,  manipulation, propaganda, and intent to influence political behavior. For example, during the 
+COVID-19 pandemic, the spread of misinformation and infodemics has been a major challenge. 
+AI can influence public opinion and sway elections.
+It can also generate fake audio/video content to damage reputations and sow confusion. State  and non-state actors are weaponizing these capabilities for propaganda to damage reputations  and sow confusion. AI can be used by political parties, governments, criminal groups, and even  the legal system to launch lawsuits and/or extract money.
+This likely will have far-reaching consequences in various domains. A significant portion of in- ternet users may be obtaining the information they need without accessing external websites. 
+There is a danger of large corporations being the gatekeepers of information and controlling  public opinion, effectively being able to restrict certain actions or viewpoints.
+Careful governance and digital literacy are essential to build resilience. Though no single fix exists,  collective efforts promoting responsible AI development can help democratic societies address  emerging threats.
+Let’s talk more about regulations!
+
+Page 342:
+Chapter 10 319
+Regulations and implementation challenges
+Realizing the potential of generative AI in a responsible manner involves addressing a number of  practical legal, ethical, and regulatory issues:
+• Legal: Copyright laws remain ambiguous regarding AI-generated content. Who owns the  output – the model creator, training data contributors, or end users? Replicating copy - righted data in training also raises fair use debates that need clarification.
+• Data protection : Collecting, processing, and storing the massive datasets required to train  advanced models creates data privacy and security risks. Governance models ensuring  consent, anonymity, and safe access are vital.
+• Oversight and regulations : Calls are mounting for oversight to ensure non-discrimina - tion, accuracy, and accountability from advanced AI systems. However, flexible policies  balancing innovation and risk are needed rather than burdensome bureaucracy.
+• Ethics: Frameworks guiding development toward beneficial outcomes are indispensable. 
+Integrating ethics through design practices focused on transparency, explicability, and  human oversight helps build trust.
+Overall, proactive collaboration between policymakers, researchers, and civil society is essential  to settle unresolved issues around rights, ethics, and governance. With pragmatic guardrails in  place, generative models can fulfill their promise while mitigating harm.
+There is a growing demand for algorithmic transparency. This means that tech companies and  developers should reveal the source code and inner workings of their systems. However, there is  resistance from these companies and developers, who argue that disclosing proprietary informa - tion would harm their competitive advantage. Open-source models will continue to thrive, and  local legislation in the EU and other countries will push for transparent use of AI.
+The consequence of AI bias includes potential harm to individuals or groups due to biased de - cisions made by AI systems. Incorporating ethics training into computer science curricula can  help reduce biases in AI code. By teaching developers how to build applications that are ethical  by design, the probability of biases being embedded into the code can be minimized. To stay on  the right path, organizations need to prioritize transparency, accountability, and guardrails to  prevent bias in their AI systems. AI bias prevention is a long-term priority for many organizations;  however, without legislation driving it, it can take time to be introduced. Local legislation in EU  countries, for example, such as the European Commission’s proposal for harmonized rules on AI  regulation, will drive more ethical use of language and imagery.
+
+Page 343:
+The Future of Generative Models 320
+A current German law on fake news, which imposes a 24-hour timeframe for platforms to remove  fake news and hate speech, is impractical for both large and small platforms. Additionally, the  limited resources of smaller platforms make it unrealistic for them to police all content. Further,  online platforms should not have the sole authority to determine what is considered truth, as this  could lead to excessive censorship. More nuanced policies are needed that balance free speech,  accountability, and feasibility for a diversity of technology platforms to comply. Relying solely on  private companies to regulate online content raises concerns about a lack of oversight and due  process. Broader collaboration between government, civil society, academics, and industry can  develop more effective frameworks to counter misinformation while protecting rights.
+To maximize benefits, companies need to ensure human oversight, diversity, and transparency  in development. Policymakers may need to implement guardrails preventing misuse while pro - viding workers with support to transition as activities shift. With responsible implementation,  generative AI could propel growth, creativity, and accessibility in a more prosperous society. 
+Addressing potential risks early on and ensuring a just distribution of benefits designed to serve  public welfare will cultivate a sense of trust among stakeholders, such as:
+• The dynamics of progress : Fine-tuning the pace of transformation is critical to avoid any  undesired repercussions. Moreover, excessively slow developments could stifle innova- tion, suggesting that determining an ideal pace through encompassing public discourse  is crucial.
+• The human-AI symbiosis : Rather than striving for outright automation, more advanta- geous systems would integrate and complement the creative prowess of humans with the  productive efficiency of AI. Such a hybrid model will ensure optimal oversight.
+• Promoting access and inclusion : Equitable access to resources, relevant education, and  myriad opportunities concerning AI is key to negating the amplification of disparities. 
+Representativeness and diversity should be prioritized.
+• Preventive measures and risk management: Constant evaluation of freshly emerging  capabilities via interdisciplinary insights is necessary to evade future dangers. Excessive  apprehensions, however, should not impede potential progress.
+• Upholding democratic norms: Collaborative discussions, communal efforts, and reaching  a compromise will inevitably prove more constructive in defining the future course of AI,  as compared to unilateral decrees imposed by a solitary entity. Public interest must take  precedence.
+Let’s conclude this chapter!
+
+Page 344:
+Chapter 10 321
+The road ahead
+The forthcoming era of generative AI models offers a plethora of intriguing opportunities and  unparalleled progression, yet it is interspersed with numerous uncertainties. As discussed  in this  book, many breakthroughs have been accomplished in recent months, but successive challenges  continue to linger, mainly pertaining to precision, reasoning ability, controllability, and entrenched  bias within these models. While grandiose claims of superintelligent AI on the horizon may seem  hyperbolic, consistent trends predict sophisticated capabilities sprouting within a few decades.
+On a technical level, generative models like ChatGPT often function as black boxes, with limited  transparency into their decision-making processes. A lack of model interpretability makes it  difficult to fully understand model behavior or to control outputs. There are also concerns about  potential biases that could emerge from imperfect training data. On a practical level, generative  models require extensive computational resources for training and deployment; however, we  discussed developments and trends that change that.
+On the positive side, AI can democratize skills, allowing amateurs to produce professional quality  output in design, writing, and other areas. Businesses can benefit from faster, cheaper, on-demand  work. However, there are major concerns about job losses, especially for specialized middle-class  roles like graphic designers, lawyers, and doctors. Their work is  being automated while low-skilled  workers learn to leverage AI as a superpower.
+However, the proliferation of generative content raises valid concerns about misinformation,  plagiarism in academia, and impersonation in online spaces. As these models become more adept  at mimicking human expression, people may have difficulty discerning what is human-gener - ated versus AI-generated, enabling new forms of deception. Deepfakes produced in real-time  will proliferate scams and erode trust. Most ominously, AI could be weaponized by militaries,  terrorists, criminals, and governments for propaganda and influence. There are also fears about  generative models exacerbating social media addiction due to their ability to produce endless  customized content.
+The sheer pace of advancement creates unease surrounding human obsolescence and job dis - placement, which could further divide economic classes. Unlike physical automation of the past,  generative AI threatens cognitive job categories previously considered safe from automation. 
+Managing this workforce transition ethically and equitably will require foresight and planning. 
+There are also philosophical debates around whether AI should be creating art, literature, or music  that has historically reflected the human condition.
+
+Page 345:
+The Future of Generative Models 322
+For corporations, effective governance frameworks have yet to be established around acceptable  use cases. Generative models amplify risks of misuse, ranging from creating misinformation such  as deepfakes to generating unsafe medical advice. Legal questions around content licensing and  intellectual property arise. While generative models can enhance business productivity, quality  control and bias mitigation incur costs.
+Looking decades ahead, perhaps the deepest challenges are ethical. As AI is entrusted with more  consequential decisions, alignment with human values becomes critical. While accuracy, rea - soning ability, controllability, and mitigating bias remain technical priorities, other priorities  should include fortifying model robustness, promoting transparency, and ensuring alignment  with human values.
+While future capabilities remain uncertain, proactive governance and democratization of access  are essential to direct these technologies toward equitable, benevolent outcomes. Collaboration  between researchers, policymakers, and civil society around issues of transparency, accountability,  and ethics can help align emerging innovations with shared human values. The goal should be  to empower human potential, not mere technological advancement.
+Join our community on Discord
+Join our community’s Discord space for discussions with the authors and other readers: https://packt.link/lang
+
+Page 346:
+packt.com
+Subscribe to our online digital library for full access to over 7,000 books and videos, as well as  industry leading tools to help you plan your personal development and advance your career. For  more information, please visit our website.
+Why subscribe?
+• Spend less time learning and more time coding with practical eBooks and Videos from  over 4,000 industry professionals
+• Improve your learning with Skill Plans built especially for you
+• Get a free eBook or video every month
+• Fully searchable for easy access to vital information
+• Copy and paste, print, and bookmark content
+At www.packt.com , you can also read a collection of free technical articles, sign up for a range of  free newsletters, and receive exclusive discounts and offers on Packt books and eBooks.
+
+Page 347:
+
+
+Page 348:
+Other Books  
+You May Enjoy
+If you enjoyed this book, you may be interested in these other books by Packt:
+Transformers for Natural Language Processing and Computer Vision
+Denis Rothman
+ISBN: 9781805128724
+• Master the art of fine-tuning models and engineering effective prompts
+• Tackle examples of LLM risks by delving into strategies to mitigate them
+• Learn about the potential functional AGI capabilities of foundation models
+• Visualize transformer model activity for deeper insights using BertViz, LIME, and SHAP
+• Create and implement cross-platform chained models, such as HuggingGPT
+• Skyrocket your productivity with an automated generative ideation process
+• Go in-depth into vision transformers with CLIP, DALL-E 2, DALL-E 3, and GPT-4V
+
+Page 349:
+Other Books You May Enjoy 326
+Building LLM Apps
+Valentina Alto
+ISBN: 9781835462317
+• Core components of LLMs’ architecture, including encoder-decoders blocks, embedding  and so on
+• Get well-versed with unique features of LLMs like GPT-3.5/4, Llama 2, and Falcon LLM
+• Use AI orchestrators like LangChain, and Streamlit as frontend
+• Get familiar with LLMs components such as memory, prompts and tools
+• Learn non-parametric knowledge, embeddings and vector databases
+• Understand the implications of LFMs for AI research, and industry applications
+• Customize your LLMs with fine tuning
+• Learn the ethical implications of LLM-powered applications
+
+Page 350:
+Other Books You May Enjoy 327
+Generative AI Engineering
+Konrad Banachewicz
+ISBN: 9781805120513
+• Get to grips with the fundamentals of generative AI and its applications
+• Familiarize yourself with different types of generative models and when to use them
+• Train and Finetune generative models using PyTorch
+• Evaluate the performance of your models and fine-tune them for optimal results
+• Find best practices for deploying and scaling generative AI models in production envi - ronments
+
+Page 351:
+Other Books You May Enjoy 328
+Packt is searching for authors like you
+If you’re interested in becoming an author for Packt, please visit authors.packtpub.com  and  apply today. We have worked with thousands of developers and tech professionals, just like you,  to help them share their insight with the global tech community. You can make a general appli- cation, apply for a specific hot topic that we are recruiting an author for, or submit your own idea.
+Share your thoughts
+Now you’ve finished Generative AI with LangChain , we’d love to hear your thoughts! If you pur - chased the book from Amazon, please click here to go straight to the Amazon review  page  for this book and share your feedback or leave a review on the site that you purchased it from.
+Your review is important to us and the tech community and will help us make sure we’re deliv - ering excellent quality content.
+
+Page 352:
+Index
+Symbols
+2021 AI boom/bust cycle  312
+A
+AgentOps  261 agents  52, 53 benefits  52
+AI, for software development code LLMs  175-179
+AI-Generated Content (AIGC)  313 alignment  226
+Annoy (Approximate Nearest Neighbors Oh 
+Yeah) algorithm  141
+Anthropic  85
+API model integrations
+Anthropic  85
+Azure  84 exploring  69-72 fake LLM  72, 73
+Google Cloud Platform  77-79
+Hugging Face  75, 76
+Jina AI  80-82
+OpenAI  73, 75
+Replicate  82-84application, for customer service building  89-95
+Application Programming Interface (APIs)  69
+Approximate Nearest Neighbor 
+ (ANN)  59, 141
+Argilla  289, 290
+Artificial General Intelligence (AGI)  308-310
+Artificial Intelligence (AI)  1, 5, 144 using, for software development  174, 175 arXiv  117 automated data science  207, 209
+AutoML  211-213 data collection  209
+LLMs and generative AI benefits  206 preprocessing and feature extraction  210 visualization and EDA  210
+Automated Machine Learning  
+(AutoML)  211-213
+Automatic Speech Recognition (ASR)  33
+Azure  84
+B base model  15
+Big Bang of DL  10 black-box scenario  212
+
+Page 353:
+Index 330
+Boom Phase  312
+Bust Phase   312
+Byte-Pair Encoding (BPE)  25
+C
+Chain of Density (CoD)  105, 106
+Chain-of-Thought (CoT)  128
+Chain-of-Thought (CoT) 
+ prompting  169, 244, 248, 249 chains  50, 51 chatbot  132
+ELIZA  132
+PARRY  132 responses, moderating  167-169 use cases  133 chatbot implementation  153 document loader  154, 155 memory  160 vector storage  155-160
+ChatGPT  132
+Chinchilla scaling law  305
+Chroma  147, 148
+Claude and Claude 2  18
+ClearML  290 code LLMs  175-179 code, with LLMs
+Llama 2  186 small local model  187-189
+StarChat  184-186
+StarCoder  179-184 writing  179
+Comet.ml  289 commercial models  241, 242
+Common European Framework of Reference  for Languages (CEFR)  17Conda cons  66 pros  66 reference link  68 using  68 conditioning  226 conditioning LLMs  226, 227 methods  227, 228 conditioning LLMs, methods inference-time conditioning  230-232 low-rank adaptation  229, 230 reinforcement learning, with human  feedback  228 contextual compression  156 continuous integration and continuous  delivery (CI/CD)  276
+ConversationSummaryMemory using  164 convolutional neural network (CNN)  31, 136
+Creative Advertising System (CAS)  314
+D
+Datadog APM integration  290 data exploration with LLMs  217-222
+DataRobot MLOps  290 data science generative models, impact  204-206 generative models impact, principal   areas  204 questions, answering by agents  213-216 use cases, for generative AI  204
+DeepEval  290
+Deep Learning (DL)  5
+Denoising Diffusion Implicit Model  
+(DDIM)  29
+
+Page 354:
+Index 331 dependencies setting up  65-67
+DocArray  156
+Docker cons  66 pros  66 reference link  68 using  68 document loaders, LangChain  149, 150 documents information, extracting from  112-115
+DuckDuckGo  117
+E economic consequences  310-312 creative industries and advertising  313, 314 education  315 law  315 manufacturing  316 medicine  316 military  316
+Efficient Transfer Learning (PEL T)  232
+Embedding class  73 embeddings  70, 135-138 bag-of-words approach  136 word2vec  136
+Exploratory Data Analysis (EDA)  209 extract, transform, and load (ETL)  209
+F
+Facebook AI Similarity Search (Faiss)  59, 142 fact-checking hallucination, mitigating through  100-103fact-checking stages claim detection  100 evidence retrieval  100 verdict prediction  100 fake LLM  72, 73
+FastAPI   276-279 few-shot chain-of-thought prompting   249 few-shot learning prompting  246-248
+Financial PhraseBank  91
+Finetuner  80 fine-tuning  225, 232, 233 advantages  232 commercial models  241, 242 open-source models  236-241 setting up  233-236
+FizzBuzz  79
+Flowise library  49 forward diffusion process  28
+Foundational Model Orchestration  
+(FOMO)  261 foundation model  15
+G gcloud command-line interface (CLI) installation link  77
+Generative Adversarial Networks (GANs)  28 generative AI models  2-8
+Artificial General Intelligence  309, 310
+Big Tech, versus small enterprises  307, 308 challenges  302, 303 current state  300, 301 developing, terms  19 forthcoming era  321, 322 handling, on various domains  6
+
+Page 355:
+Index 332 impact, on data science  204-206 need for  8-11 techniques and approaches, for making  accessible  306 trends, in model development  304-307 usage, in other domains  33, 34
+Generative Pre-trained Transformer (GPT)  models  3, 13-16 conditioning  26 pre-training  23, 24 scaling  25, 26 tokenization  24, 25 usage, considerations  20-23
+Google Cloud Natural Language (NL)  77
+Google Cloud Platform (GCP)  77-80
+Google Colab  233
+GPT4All  88, 89 grade-school math questions (GSM8k)  235
+Graph Convolutional Networks (GCNs)  141
+Graphics Processing Units (GPUs)  8, 233
+Graph Neural Networks (GNNs)  141
+Grouped-Query Attention (GQA)  22
+H hallucination mitigating, through fact-checking  100-103 hierarchical navigable small world  
+(HNSW)  141, 144 hnswlib  142
+Hugging Face  75, 76
+Hugging Face Transformers  86, 87
+HumanEval dataset  176
+HyperText Markup Language (HTML)  59I
+IBM Watson OpenScale  290 inference-time conditioning  230-232 techniques  231 information, summarizing  103 basic prompting  103, 104
+Chain of Density (CoD)  105, 106 map reduce approach  107-109 prompt templates, using  104 token usage, monitoring  109-111 infrastructure as a Service (IaaS)  84
+Infrastructure as Code (IaC)  276
+Integrated Development Environments 
+(IDEs)  174
+J
+Jina AI  80-82 reference link  80
+K k-dimensional trees (k-d trees)  140
+KM scaling law  305
+L
+Ladder Side-Tuning (LST)  232
+LangChain  46-50, 147 agents  52, 53 benefits  47 chains  50, 51 comparing, with frameworks  60, 61 data loaders  148, 149 document loaders  149, 150 key components, exploring  50
+
+Page 356:
+Index 333 memory  54, 55 retrievers  148-151 tools  55, 56 working  57-59
+LangChain API reference link  59
+LangChain Expression Language (LCEL)  105
+LangChainHub library  49
+LangFlow library  49
+Langfuse  290
+LangKit  290
+LangServe  274
+LangSmith  291-293
+Language Models (LMs)  5
+Large Language Models  
+(LLMs)  1, 5, 11, 12, 37, 43-45 areas  12 deploying  273 deployment readiness, ensuring  258, 259 evaluating  261-264 examples  45 external services, integrating  44, 45
+Foundational Model Orchestration  
+(FOMO)  261 limitations  38-42 limitations, mitigating  42, 43
+LLMOps  260
+MLOps  260
+ModelOps  261 need for  45 observing  284-286 parameters  9 tasks, related to programming   174 usage  27 used, for data exploration  217-222large language models (LLMs), technical  background
+GPT  13-16
+GPT models  20 major players  18-20 notable foundational GPT models  16-18 latent diffusion model  31
+Lethal Autonomous Weapons Systems 
+(LAWS)  316
+Llama 2  186
+LLaMa and LLaMa 2 series  17 llama.cpp  87, 88
+LlamaHub library  48
+LLM apps, deployment  273-275 aspects, for production  273
+FastAPI web server, using  276-279
+Ray, using  280
+ requirements for running  275 services and frameworks  274
+LLM apps, evaluation comparing, against criteria  265-267 running, against datasets  268-272 string and semantic comparisons  267 two outputs, comparing  264, 265
+LLM apps, monitoring considerations  285 evaluation areas  286
+LangSmith  291-293 observability tools  289-291
+PromptWatch  294, 295 responses, tracing  287-289
+LLMonitor  290
+LLMOps  260
+LMOps  260
+
+Page 357:
+Index 334 locality sensitive hashing (LSH)  141 local models exploring  85 low-rank adaptation  229, 230
+Low-Rank Adaptation (LoRA)  228, 229
+M
+Machine Learning (ML)  5 map reduce approach  107-109 maps tokens  24
+Masked Language Modeling (MLM)  23
+Massive Multitask Language Understanding 
+(MMLU)  2
+Maximum Marginal Relevance (MMR)   156 md5 checksum tool  87
+Mean Squared Error (MSE)  31 memory  54, 55 options  54 memory, chatbot implementation  160 conversation buffers  161-163
+ConversationSummaryMemory  164 knowledge graphs, storing  164 long-term persistence  166 memory mechanisms, combining  165, 166
+Mixture of Experts (MoE) model  15
+MLOps  260
+ModelOps  261 monitoring process  284
+Multi-Head Attention (MHA)  21
+Multi-Query Attention (MQA)  22
+N
+Natural Language Processing (NLP)  2
+Negative Log-Likelihood (NLL)  23Neural Machine Translation (NMT)  20 nmslib  142
+O observation-dependent reasoning  123, 124
+OpenAI  4, 73-75 open-source models  236-241
+Optical Character Recognition (OCR)  7
+P
+PaLM 2  16
+Parameter-Efficient Fine-Tuning (PEFT)  229
+Perplexity (PPL)  23
+Pip cons  66 pros  66 reference link  67 using  68 plan-and-execute agent  123, 124 platform as a service (PaaS)  84
+Poetry cons  66 pros  66 reference link  68 using  68
+Portkey  289 product quantization (PQ)  140 prompt chaining  50 prompt engineering  225, 242-244 components  242 techniques  244-246 prompt engineering, techniques chain-of-thought  248, 249 few-shot learning  246-248
+
+Page 358:
+Index 335 self-consistency prompting  249-251
+Tree-of-Thought (ToT) prompting  251-255 zero-shot prompting  246
+PromptWatch  294, 295
+ProsusAI/finbert  91
+Proximal Policy Optimization (PPO)  228
+Q quantization  230
+R
+Ray  280-284
+Read-Eval-Print Loop (REPL)  73 reasoning strategies exploring  121-128 reinforcement learning with human feedback  228, 229
+Reinforcement Learning with Human 
+Feedback (RLHF)  26, 228
+Replicate  82-84 reference link  83
+Representational State Transfer Application 
+Programming Interface  
+(REST API)  276
+Retrieval-Augmented Generation  
+(RAG)  44, 131, 134
+Retrieval-Augmented Language Models 
+(RALMs)  134 retrievers, LangChain  150
+Arxiv retriever  151
+BM25 retriever  150 custom retrievers  153 dense retriever  151 kNN retriever  151, 152
+PubMed retriever  152TF-IDF retriever  151
+Wikipedia retriever  151 reverse diffusion process  29
+S self-consistency prompting  249-251 semantic search  143 similarity search  143
+Simple Workflow Service (SWF)  209
+Site Reliability Engineering (SRE)  286 small local model  187-189
+Smart Generation System Personalized   314 societal implications  317 misinformation and cybersecurity  318 regulations and implementation   challenges  319, 320
+Software as a Service (SaaS)  84 software development
+AI, using for  174, 175 automating  189-201
+Splunk  290
+SPTAG  143
+Stable Diffusion  30
+StarChat  184-186
+StarCoder  179-184 stochastic parrots  38
+Streamlit app  159 advantages  120
+T
+Technology Innovation Institute (TII)  19
+Tensor Processing Units (TPUs)  85, 233
+
+Page 359:
+Index 336 text-to-image models  27-32 applications  27 tokenization  24 token usage monitoring  109-111 tools  55, 56 examples  55, 56 information, retrieving with  116, 117 questions, answering with  116 visual interface, building with  118-121 tracking  287 transformer-based models  137 transformers  13 architectural features  21
+Tree-of-Thought (ToT) prompting  251-255
+Turing test  132
+U
+U-Net  31 user interface (UI)  126 utility chains  50
+V
+Variational Autoencoders (VAEs)  10, 30 vector databases  143 anomaly detection  143 characteristics  144 examples  145-147
+Natural Language Processing (NLP)  143 personalization  143 vector indexing  140 vector libraries  141-143
+Annoy  142
+Faiss  142hnswlib  142 nmslib  142
+SPTAG  143 vector search  135, 139 vector storage  135, 139 venture capitalists (VCs)  144
+Visual Foundation Models (VFMs)  15
+W
+Weights and Biases (W&B)  234 tracing  290
+Wikipedia  117
+Wolfram Alpha  117 reference link  118
+Z
+Zero-Shot agent  124 zero-shot chain-of-thought  249 zero-shot prompting  231, 246
+
+Page 360:
+Download a free PDF copy of this book
+Thanks for purchasing this book!
+Do you like to read on the go but are unable to carry your print books everywhere? Is your eBook  purchase not compatible with the device of your choice?
+Don’t worry, now with every Packt book you get a DRM-free PDF version of that book at no cost.
+Read anywhere, any place, on any device. Search, copy, and paste code from your favorite technical  books directly into your application. 
+The perks don’t stop there, you can get exclusive access to discounts, newsletters, and great free  content in your inbox daily
+Follow these simple steps to get the benefits:
+1. Scan the QR code or visit the link below https://packt.link/free-ebook/9781835083468
+2. Submit your proof of purchase
+3. That’s it! We’ll send your free PDF and other benefits to your email directly
+
+Page 361:
+
+
