@@ -1,481 +1,456 @@
-# Python Programming Specificities
+Now it’s time to begin learning about FastAPI! In this chapter, we’ll cover the basics of FastAPI. We’ll go through very simple and focused examples that will demonstrate the different features of FastAPI. Each example will lead to a working API endpoint that you’ll be able to test yourself using HTTPie. In the final section of this chapter, we’ll show you a more complex FastAPI project, with routes split across several files. It will give you an overview of how you can structure your own application.
 
-The Python language was designed to emphasize code readability. As such, it provides syntaxes and constructs that allow developers to quickly express complex concepts in a few readable lines. This makes it quite different from other programming languages.
+By the end of this chapter, you’ll know how to start a FastAPI application and how to write an API endpoint. You’ll also be able to handle request data and build a response according to your own logic. Finally, you’ll learn a way to structure a FastAPI project into several modules that will be easier to maintain and work with in the long term.
 
-The goal of this chapter is thus to get you acquainted with its specificities, but we expect you already have some experience with programming. We’ll first get started with the basics of the language, the standard types, and the flow control syntaxes. You’ll also be introduced to the list comprehension and generator concepts, which are very powerful ways to go through and transform sequences of data. You’ll also see that Python can be used as an object-oriented language, still through a very lightweight yet powerful syntax. Before moving on, we’ll also review the concepts of type hinting and asynchronous I/O, which are quite new in Python but are at the core of the FastAPI framework.
+In this chapter, we’ll cover the following main topics:
+Creating the first endpoint and running it locally
+Handling request parameters
+Customizing the response
+Structuring a bigger project with multiple routers
 
-In this chapter, we’re going to cover the following main topics:
-Basics of Python programming
-List comprehensions and generators
-Classes and objects
-Type hinting and type checking with mypy
-Asynchronous I/O
+## Creating a first endpoint and running it locally
 
-## Basics of Python programming
+FastAPI is a framework that is easy to use and quick to write. In the following example, you’ll realize that this is not just a promise. In fact, creating an API endpoint involves just a few lines:
 
-First of all, let’s review some of the key aspects of Python:
-It’s an interpreted language. Contrary to languages such as C or Java, it doesn’t need to be compiled, which allows us to run Python code interactively.
-It’s dynamically typed. The type of values is determined at runtime.
-It supports several programming paradigms: procedural, object-oriented, and functional programming.
-This makes Python quite a versatile language, from simple automation scripts to complex data science projects.
+In this example, we define a GET endpoint at the root path, which always returns the {"hello": "world"} JSON response. To do this, we first instantiate a FastAPI object, app. It will be the main application object that will wire all the API routes.
+Then, we simply define a coroutine that contains our route logic, the path operation function. Its return value is automatically handled by FastAPI to produce a proper HTTP response with a JSON payload.
 
-### Running Python scripts
+Here, the most important part of this code is probably the line starting with @, which can be found above the coroutine definition, the decorator. In Python, a decorator is a syntactic sugar that allows you to wrap a function or class with common logic without compromising readability. It’s roughly equivalent to app.get("/")(hello_world).
+FastAPI exposes one decorator per HTTP method to add new routes to the application. The one shown here adds a GET endpoint with the path as the first argument.
 
-As we said, Python is an interpreted language. Hence, the simplest and quickest way to run some Python code is to launch an interactive shell. Just run the following command to start a session:
-This shell makes it very easy to run some simple statements and do some experiments:
-To exit the shell, use the Ctrl + D keyboard shortcut.
+Now, let’s run this API. Copy the example to the root of your project and run the following command:
 
-Obviously, this can become tedious when you start to have more statements or if you just wish to keep your work to reuse it later. Python scripts are saved in files with the .py extension. Let’s create a file named chapter2_basics_01.py in our project directory and add this code:
+As we mentioned in Chapter 2, Python Programming Specificities, in the Asynchronous I/O section, FastAPI exposes an Asynchronous Server Gateway Interface (ASGI)-compatible application. To run it, we require a web server compatible with this protocol. Uvicorn is a good option to use. It gives a command to quickly start a web server. In the first argument, it expects the dotted namespace of the Python module, which contains your app instance, followed by a colon, :, and, finally, the variable name of your ASGI app instance (in our example, this is app). Afterward, it takes care of instantiating the application and exposing it on your local machine.
 
-Quite simply, this script prints Hello world on the console, assigns the value 100 to a variable named x, and prints a string with the value of x and its double. To run it, simply add the path of your script as a parameter of the Python command:
+Let’s try our endpoint with HTTPie. Open another terminal and run the following command:
 
-f-strings You have probably noticed the string starting with f. This syntax, called f-strings, is a very convenient and neat way to perform string interpolation. Within, you can simply insert variables between curly braces; they will automatically be converted into strings to build the resulting string. We’ll use it quite often in our examples.
+It works! As you can see, we did get a JSON response with the payload we wanted, using just a few lines of Python and a command!
+One of the most beloved features of FastAPI is the automatic interactive documentation. If you open the http://localhost:8000/docs URL in your browser, you should get a web interface that looks similar to the following screenshot:
 
-### Indentation matters
+FastAPI will automatically list all your defined endpoints and provide documentation about the expected inputs and outputs. You can even try each endpoint directly in this web interface. Under the hood, it relies on the OpenAPI specification and the associated tools from Swagger. You can read more about this on its official website at https://swagger.io/.
+That’s it! You’ve created your very first API with FastAPI. Of course, this is just a very simple example, but next, you’ll learn how to handle input data and start making meaningful things!
 
-One of the most iconic aspects of Python is that code blocks are not defined using curly braces like many other programming languages, but rather with whitespace indentation. This may sound a bit strange, but it’s at the heart of the readability philosophy of Python. Let’s see how you can write a script that finds the even numbers in a list:
+On the shoulder of giants It’s worth noting that FastAPI is built upon two main Python libraries: Starlette, a low-level ASGI web framework (https://www.starlette.io/), and Pydantic, a data validation library based on type hints (https://pydantic-docs.helpmanual.io/).
 
-In this script, we define numbers, a list of numbers from 1 to 10, and even, an empty list that will contain the even numbers.
-Then, we define a for loop statement to go through each element of numbers. As you see, we open a block with a colon, :, break a line, and start writing the next statement with an indentation.
-The next line is a conditional statement to check the parity of the current number. Once again, we open a block with a colon, :, and write the next statement with an additional indentation level. This statement adds the even number to the even list.
-After that, the next statements are not intended. This means that we are out of the for loop block; they should be executed after the iteration is finished.
+## Handling request parameters
 
-Indentation style and size You can choose the indentation style (tabs or spaces) and size (2, 4, 6...) you prefer; the only constraint is that you should be consistent within a block. However, by convention, Python developers usually go for a four-space indentation.
-This aspect of Python may sound weird but with some practice, you’ll find that it enforces clear formatting and greatly improves the readability of your scripts.
+The main goal of a representational state transfer (REST) API is to provide a structured way to interact with data. As such, it’s crucial for the end user to send some information to tailor the response they need, such as path parameters, query parameters, body payloads, headers, and so on.
 
-### Working with built-in types
+Web frameworks usually ask you to manipulate a request object to retrieve the parts you are interested in and manually apply validation to handle them. However, that’s not necessary with FastAPI! Indeed, it allows you to define all of your parameters declaratively. Then, it’ll automatically retrieve them in the request and apply validation based on the type hints. This is why we introduced type hinting in Chapter 2, Python Programming Specificities: it’s used by FastAPI to perform data validation!
 
-Python is quite conventional regarding scalar types. There are six of them:
-int, to store integer values, such as x = 1
-float, for floating-point numbers, such as x = 1.5
-complex, for complex numbers, such as x = 1 + 2j
-bool, for Boolean values, either True or False
-str, for string values, such as x = "abc"
-NoneType, to indicate null values, such as x = None
-Basics of Python programming
+Next, we’ll explore how you can use this feature to retrieve and validate this input data from different parts of the request.
 
-It’s worth noting that Python is strongly typed, meaning that the interpreter will limit implicit type conversions. For example, trying to add an int value and a str value will raise an error, as you can see in the following example:
-Still, adding an int value and a float value will automatically upcast the result to float:
-As you may have noticed, Python is quite traditional regarding those standard types. Let’s see now how basic data structures are handled.
+### Path parameters
 
-### Working with data structures – lists, tuples, dictionaries, and sets
+The API path is the main thing that the end user will interact with. Therefore, it’s a good spot for dynamic parameters. A typical example is to put the unique identifier of an object we want to retrieve, such as /users/123. Let’s examine how to define this with FastAPI:
 
-Besides the scalar types, Python also provides handy data structures: an array structure, of course, called a list in Python, but also tuples, dictionaries, and sets, which are very convenient in lots of cases. Let’s start with lists.
+In this example, we defined an API that expects an integer in the last part of its path. We did this by putting the parameter name in the path around curly braces. Then, we defined this same parameter as an argument for our path operation function. Notice that we add a type hint to specify that the parameter is an integer.
 
-- Lists
+Let’s run this example. You can refer to the previous Creating a first endpoint and running it locally section, to learn how to run a FastAPI app with Uvicorn.
 
-Lists are the equivalent in Python of the classic array structure. Defining a list is quite straightforward:
-As you see, wrapping a suite of elements in square brackets denotes a list. You can, of course, access single elements by index:
-It also supports negative indexing, which allows you to retrieve elements from the end of the list: the -1 index is the last element, -2 is the second last element, and so on:
-Another useful syntax is slicing, which quickly allows you to retrieve a sub-list:
-The first number is the start index (inclusive) and the second one is the end index (exclusive), separated by a colon. You can omit the first one; in this case, 0 is assumed:
-You can also omit the second one; in this case, the length of the list is assumed:
-Finally, this syntax also supports a third argument to specify the step size. It can be useful to select every second element of the list:
-A useful trick with this syntax is to use -1 to reverse the list:
-Lists are mutable. This means that you can reassign elements or add new ones:
-This is different from their cousins, the tuples, which are immutable.
+First, we’ll try to make a request that omits our path parameter:
 
-- Tuples
+We get a response with a 404 status. That’s expected: our route awaits a parameter after /users, so if we omit it, it simply doesn’t match any pattern.
+Let’s now try with a proper integer parameter:
 
-Tuples are very similar to lists. Instead of square brackets, they are defined using parentheses:
-They support the same syntax as lists to access elements or slicing:
-However, tuples are immutable. You can’t reassign elements or add new ones. Trying to do so will raise an error:
-A common way to use them is for functions that have multiple return values. In the following example, we define a function to compute and return both the quotient and remainder of the Euclidean division:
-This function simply returns the quotient and remainder wrapped in a tuple. Let’s now compute the Euclidean division of 3 and 2:
-In this case, we assign the result to a tuple named t and simply retrieve the quotient and remainder by index. However, we can do something better than that. Let’s compute the Euclidean division of 42 and 4:
-You can see here that we directly assign the quotient and remainder to the q and r variables, respectively. This syntax is called unpacking and is very convenient for assigning variables from lists or tuple elements. It’s worth noting that since t is a tuple, it’s immutable, so you can’t reassign the values. On the other hand, q and r are new variables and therefore are mutable.
+It works! We get a 200 status, and the response does contain the integer we passed in the parameter. Notice that it has been properly cast as an integer.
+So, what happens if we pass a value that’s not a valid integer? Let’s find out:
 
-- Dictionaries
+We get a response with a 422 status! Since abc is not a valid integer, the validation fails and outputs an error. Notice that we have a very detailed and structured error response telling us exactly which element caused the error and why. All we need to do to trigger this validation is to type hint our parameter!
 
-A dictionary is also a widely used data structure in Python, used to map keys to values. One is defined using curly braces, with a list of keys and values separated by a colon:
-Elements can be accessed by key:
-Dictionaries are mutable, so you can reassign or add elements in the mapping:
+Of course, you are not limited to just one path parameter. You can have as many as you want, with different types. In the following example, we’ve added a type parameter of the string type:
 
-- Sets
+This works well, but the endpoint will accept any string as the type parameter.
 
-A set is a convenient data structure for storing a collection of unique items. It is defined using curly braces:
-Basics of Python programming
-Elements can be added to the set, but the structure ensures elements appear only once:
-Convenient methods are also provided to perform operations such as unions or intersections on two sets:
+### Limiting allowed values
 
-That’s all for this overview of the Python data structures. You’ll probably use them quite often in your programs, so take some time to get acquainted with them. Obviously, we didn’t cover all of their methods and specificities, but you can have a look at the official Python documentation for exhaustive information: https://docs.python.org/3/library/stdtypes.html.
-Let’s now talk about the different types of operators available in Python that will allow us to perform some logic on this data.
+So, what if we just want to accept a limited set of values? Once again, we’ll lean on type hinting. Python has a very useful class for this: Enum. An enumeration is a way to list all the valid values for a specific kind of data. Let’s define an Enum class that will list the different types of users:
 
-### Performing Boolean logic and a few other operators
+To define a string enumeration, we inherit from both the str type and the Enum class. Then, we simply list the allowed values as class properties: the property name and its actual string value. Finally, we only have to type hint the type argument with this class:
 
-Predictably, Python provides operators to perform Boolean logic. However, we’ll also see that there are other operators that are less common but make Python a very efficient language to work with.
+If you run this example and call the endpoint with a type that is not in the enumeration, you’ll get the following response:
 
-- Performing Boolean logic
+As you can see, you get a nice validation error with the allowed values for this parameter!
 
-Boolean logic is performed with the and, or, and not keywords. Let’s review some simple examples:
-You’ll probably use them quite often in your programs, especially with conditional blocks. Let’s now review the identity operators.
+### Advanced validation
 
-- Checking whether two variables are the same
+We can take one step further by defining more advanced validation rules, particularly for numbers and strings. In this case, the type of hint is no longer enough. We’ll rely on the functions provided by FastAPI, allowing us to set some options on each of our parameters. For path parameters, the function is named Path. In the following example, we’ll only allow an id argument that is greater than or equal to 1:
 
-The is and is not identity operators check whether two variables refer to the same object. This is different from the comparison operators, == and !=, which check whether two variables have the same value.
-Internally, Python stores variables in pointers. The goal of the identity operators is thus to check whether two variables actually point to the same object in memory. Let’s review some examples:
+There are several things to pay attention to here: the result of Path is used as a default value for the id argument in the path operation function.
 
-Even though the a and b lists are identical, they’re not the same object in memory, so a is b is false. However, a == b is true. Let’s see what happens if we assign a to b:
+Additionally, you can see that we use the ellipsis syntax as the first parameter of Path. Indeed, it expects the default value for the parameter as the first argument. In this scenario, we don’t want a default value: the parameter is required. Therefore, ellipses are here to tell FastAPI that we don’t want a default value.
 
-In this case, the b variable will now refer to the same object as a, that is, the same list in memory. Thus, the identity operator is true.
+Ellipsis doesn’t always mean this in Python Using the ellipsis symbol to specify that a parameter is required, as we show here, is specific to FastAPI: it’s the choice of FastAPI creators to use it like this. In other Python programs, this symbol could be used for another means.
 
-“is None” or “== None”? To check whether a variable is null, you could write a == None. While it will work most of the time, it’s generally advised to write a is None. Why? In Python, classes can implement custom comparison operators, so the result of a == None may be unpredictable in some cases, since a class can choose to attach a special meaning to the None value.
+Then, we can add the keyword arguments we are interested in. In our example, we use ge, greater than or equal to, and its associated value. Here is the list of available keywords to validate numbers:
+gt: Greater than
+ge: Greater than or equal to
+lt: Less than
+le: Less than or equal to
 
-We’ll now review the membership operators.
+There are also validation options for string values, which are based on length and regular expression. In the following example, we want to define a path parameter that accepts license plates in the form of AB-123-CD (French license plates). A first approach would be to force the string to be a length of 9 (that is, two letters, a dash, three digits, a dash, and two letters):
 
-- Checking whether a value is present in a data structure
+Now we just have to define the min_length and max_length keyword arguments, just as we did for the number of validations. Of course, a better solution for this use case is to use a regular expression to validate the license plate number:
 
-The membership operators, in and not in, are very useful for checking whether an element is present in data structures such as lists or dictionaries. They are idiomatic in Python and make this operation very efficient and easy to write. Let’s review some examples:
+Thanks to this regular expression, we only accept strings that exactly match the license plate format. Notice that the regular expression is prefixed with r. Just like f-strings, this is a Python syntax that is used to indicate that the following string should be considered a regular expression.
 
-With the membership operators, we can check in one statement whether an element is present or not in a list. It also works with tuples and sets:
+Parameter metadata Data validation is not the only option accepted by the parameter function. You can also set options that will add information about the parameter in the automatic documentation, such as title, description, and deprecated.
 
-Finally, it also works with dictionaries. In this case, the membership operators check whether the key is present, not the value:
+Now you should be able to define path parameters and apply some validation to them. Other useful parameters to put inside the URL are query parameters. We’ll discuss them next.
 
-We are now clear about those common operations. We’ll now put them to use with conditional statements.
+### Query parameters
 
-### Controlling the flow of a program
+Query parameters are a common way to add some dynamic parameters to a URL. You can find them at the end of the URL in the following form: ?param1=foo&param2=bar. In a REST API, they are commonly used on read endpoints to apply pagination, a filter, a sorting order, or selecting fields.
 
-A programming language would not be a programming language without its control flow statements. Once again, you’ll see that Python is a bit different from other languages. Let’s start with conditional statements.
+You’ll discover that they are quite straightforward to define with FastAPI. In fact, they use the exact same syntax as path parameters:
 
-- Executing operations conditionally – if, elif, and else
+You simply have to declare them as arguments of your path operation function. If they don’t appear in the path pattern, as they do for path parameters, FastAPI automatically considers them to be query parameters. Let’s try it:
 
-Classically, these statements are here for performing some logic based on some Boolean conditions. In the following example, we’ll consider a situation where we have a dictionary containing information about an e-commerce website order. We’ll write a function that will change the order status to the next step given the current status:
+Here, you can see that we have defined a default value for those arguments, which means they are optional when calling the API. Of course, if you wish to define a required query parameter, simply leave out the default value:
 
-The first condition is noted as if, followed by a Boolean condition. We then open an indented block, as we explained in the Indentation matters section of this chapter.
+Now, if you omit the format parameter in the URL, you’ll get a 422 error response. Additionally, notice that, in this example, we defined a UsersFormat enumeration to limit the number of allowed values for this parameter; this is exactly what we did in the previous section for path parameters.
 
-The alternate conditions are noted as elif (not else if) and the fallback block is noted as else. Of course, those are optional if you don’t need alternate or fallback conditions.
+We also have access to more advanced validations through the Query function. It works in the same way that we demonstrated in the Path parameters section:
 
-It’s also worth noting that, contrary to many other languages, Python does not provide a switch statement.
+Here, we force the page to be greater than 0 and the size to be less than or equal to 100. Notice how the default parameter value is the first argument of the Query function.
+Naturally, when it comes to sending request data, the most obvious way is to use the request body. Let’s examine how it works.
 
-- Repeating operations over an iterator – the for loop statement
+### The request body
 
-We’ll now move on to another classic control flow statement: the for loop. You can repeat operations over a sequence using the for loop statement.
-We already saw an example of the for loop in action in the Indentation matters section of this chapter. As you probably understood, this statement is useful for repeating the execution of a code block.
+The body is the part of the HTTP request that contains raw data representing documents, files, or form submissions. In a REST API, it’s usually encoded in JSON and used to create structured objects in a database.
 
-You also may have noticed that it works a bit differently from other languages. Usually, programming languages define for loops like this: for (i = 0; i <= 10; i++). They give you the responsibility to define and control the variable used for the iteration.
-Python doesn’t work this way. Instead, it expects you to feed the loop with an iterator. An iterator can be seen as a sequence of elements that you can retrieve one by one. Lists, tuples, dictionaries, and sets can behave like an iterator and be used in a for loop. Let’s see some examples:
+For the simplest cases, retrieving data from the body works exactly like query parameters. The only difference is that you always have to use the Body function; otherwise, FastAPI will look for it inside the query parameters by default. Let’s explore a simple example where we want to post some user data:
 
-But what if you just wish to iterate a certain number of times? Thankfully, Python has built-in functions that generate some useful iterators. The most well known is range, which precisely creates a sequence of numbers. Let’s see how it works:
+In the same way as query parameters, we define each argument with a type hint along with the Body function with no default value to make them required. Let’s try the following endpoint:
 
-range will generate a sequence of the size you provided in the first argument, starting with zero.
-You could also be more precise by specifying two arguments: the start index (inclusive) and the last index (exclusive):
+Here, we used the -v option of HTTPie so that you can clearly see the JSON payload we sent. FastAPI successfully retrieves the data for each field from the payload. If you send a request with a missing or invalid field, you’ll get a 422 status error response.
 
-Finally, you may even provide a step as a third argument:
-Note that this syntax is quite similar to the slicing syntax we saw earlier in this chapter in the sections dedicated to lists and tuples.
-range output is not a list A common misconception is to think range returns a list. It’s actually a Sequence object that only stores the start, end, and step arguments. That’s why you could write range(1000000000) without blowing up your system’s memory: the billions of elements are not assigned to memory all at once.
-As you see, the for loop syntax in Python is quite straightforward to understand and emphasizes readability. We’ll now have a word about its cousin, the while loop.
+You also have access to more advanced validation through the Body function. It works in the same way as we demonstrated in the Path parameters section.
 
-- Repeating operations until a condition is met – the while loop statement
+However, defining payload validations such as this has some major drawbacks. First, it’s quite verbose and makes the path operation function prototype huge, especially for bigger models. Second, usually, you’ll need to reuse the data structure on other endpoints or in other parts of your application.
 
-The classical while loop is also available in Python. At the risk of disappointing you, there is nothing truly special about this one. Classically, this statement allows you to repeat instructions until a condition is met. We’ll review an example in which we use a while loop to retrieve paginated elements until we reach the end:
+This is why FastAPI uses Pydantic models for data validation. Pydantic is a Python library for data validation and is based on classes and type hints. In fact, the Path, Query, and Body functions that we’ve learned about so far use Pydantic under the hood!
 
-The retrieve_page function is a dummy function that returns a dictionary with the items for the page passed in an argument and the next page number or None if we reached the last page. A priori, we don’t know how many pages there are. Thus, we repeatedly call retrieve_page until the page is None. At each iteration, we save the current page items in an accumulator, items.
+By defining your own Pydantic models and using them as type hints in your path arguments, FastAPI will automatically instantiate a model instance and validate the data. Let’s rewrite our previous example using this method:
 
-This kind of use case is quite common when you are dealing with third-party REST APIs and you wish to retrieve all items available, and while loops perfectly help with this.
-Finally, there are cases where you wish to prematurely end the loop or skip an iteration. To solve this, Python implements the classic break and continue statements.
+First, we import BaseModel from pydantic. This is the base class that every model should inherit from. Then, we define our User class and list all of the properties as class properties. Each one of them should have a proper type hint: this is how Pydantic will be able to validate the type of the field.
 
-### Defining functions
+Finally, we just declare user as an argument for our path operation function with the User class as a type hint. FastAPI automatically understands that the user data can be found in the request payload. Inside the function, you have access to a proper user object instance, where you can access individual properties by simply using the dot notation, such as user.name.
 
-Now that we know how to use the common operators and control the flow of our program, let’s put it in reusable logic. As you may have guessed, we’ll look at functions and how to define them. We already saw them in some of our previous examples, but let’s introduce them more formally.
+Notice that if you just return the object, FastAPI is smart enough to convert it automatically into JSON to produce the HTTP response.
 
-In Python, functions are defined using the def keyword followed by the name of the function. Then, you have the list of supported arguments in parentheses, before a colon that indicates the start of the function body. Let’s see a simple example:
+In the following chapter, Chapter 4, Managing Pydantic Data Models in FastAPI, we’ll explore, in more detail, the possibilities of Pydantic, particularly in terms of validation.
 
-That’s it! Python also supports default values on arguments:
-When calling a function, you can specify the value of arguments using their name:
-Those arguments are called keyword arguments. They are especially useful if you have several default arguments but only wish to set one of them:
+### Multiple objects
 
-Function naming By convention, functions should be named using snake case: my_wonderful_function but not MyWonderfulFunction.
-But there is more! You can actually define functions accepting a dynamic number of arguments.
+Sometimes, you might have several objects that you wish to send in the same payload all at once. For example, both user and company. In this scenario, you can simply add several arguments that have been type hinted by a Pydantic model, and FastAPI will automatically understand that there are several objects. In this configuration, it will expect a body containing each object indexed by its argument name:
 
-- Accepting arguments dynamically with *args and **kwargs
+Here, Company is a simple Pydantic model with a single string name property. In this configuration, FastAPI expects a payload that looks similar to the following:
 
-Sometimes, you may need a function that supports a dynamic number of arguments. Those arguments are then handled in your function logic at runtime. To do this, you have to use the *args and **kwargs syntax. Let’s define a function that uses this syntax and prints the value of those arguments:
+For more complex JSON structures, it’s advised that you pipe a formatted JSON into HTTPie rather than use parameters. Let’s try this as follows:
 
-As you can see, standard arguments are placed in a tuple, in the same order as they were called. Keyword arguments, on the other hand, have been placed in a dictionary, with the key being the name of the argument. It’s up to you then to use this data to perform your logic!
-Interestingly, you can mix both approaches so that you have hardcoded arguments and dynamic ones:
+And that’s it!
+You can even add singular body values with the Body function, just as we saw at the beginning of this section. This is useful if you wish to have a single property that’s not part of any model:
 
-Well done! You have learned how to write functions in Python to organize the logic of your program. The next step now is to organize those functions into modules and import them into other modules to take advantage of them!
+The priority property is an integer between 1 and 3, which is expected beside the user object:
 
-### Writing and using packages and modules
+You now have a good overview of how to handle JSON payload data. However, sometimes, you’ll find that you need to accept more traditional-form data or even file uploads. Let’s find out how to do this next!
 
-You probably already know that, apart from small scripts, your source code shouldn’t live in one big file with thousands of lines. Instead, you should split it into logical blocks of reasonable size that are easy to maintain. That’s exactly what packages and modules are for! We’ll see how they work and how you can define your own.
+### Form data and file uploads
 
-First of all, Python comes with its own set of modules, the standard library, which are directly importable in a program:
+Even if REST APIs work most of the time with JSON, sometimes, you might have to handle form- encoded data or file uploads, which have been encoded either as application/x-www-form- urlencoded or multipart/form-data.
 
-With just the import keyword, you can use the datetime module and access all its content by referring to its namespace, datetime.date, which is the built-in class to work with dates. However, you may sometimes wish to explicitly import a part of this module:
+Once again, FastAPI allows you to implement this case very easily. However, you’ll need an additional Python dependency, python-multipart, to handle this kind of data. As usual, you can install it with pip:
 
-Here, we explicitly import the date class to use it directly. The same principles apply to third-party packages installed with pip, such as FastAPI.
+Then, you can use the FastAPI features that are dedicated to form data. First, let’s take a look at how you can handle simple form data.
 
-Using existing packages and modules is nice but writing your own is even better. In Python, a module is a single file containing declarations but can also contain instructions that will be executed when the module is first imported. You’ll find the definition of a very simple module in the following example:
+### Form data
 
-This module only contains a function, module_function, and a print statement. Create a file containing this code at the root of your project directory and name it module.py. Then, open a Python interpreter and run this command:
+The method to retrieve form data fields is similar to the one we discussed in the The request body section to retrieve singular JSON properties. The following example is roughly the same as the one you explored there. However, this example expects form-encoded data instead of JSON:
 
-Notice that the print statement was executed when you imported it. You can now use the function:
-Congratulations! You’ve just written your first Python module!
+The only difference here is that we use the Form function instead of Body. You can try this endpoint with HTTPie and the --form option to force the data to be form-encoded:
 
-Now, let’s see how to structure a package. A package is a way to organize modules in a hierarchy, which you can then import using their namespace.
-At the root of your project, create a directory named package. Inside, create another directory named subpackage and move module.py into it. Your project structure should look like the one shown in Figure 2.1:
-You can then import your module using the full namespace:
+Pay attention to how the Content-Type header and the body data representation have changed in the request. You can also see that the response is still provided in JSON. Unless specified otherwise, FastAPI will always output a JSON response by default, no matter the form of the input data.
 
-It works! However, to define a proper Python package, it’s strongly recommended to create an empty __init__.py file at the root of each package and sub-package. In older Python versions, it was compulsory to make a package recognizable by the interpreter. This became optional in more recent versions, but there are actually some subtle differences between a package with an __init__. py file (a package) and one without (a namespace package). We won’t explain it further in this book, but you could check the documentation about namespace packages here if you wish to learn more details: https://packaging.python.org/en/latest/guides/packaging- namespace-packages/.
+Of course, the validation options we saw for Path, Query, and Body are still available. You can find a description for each of them in the Path parameters section.
 
-Therefore, you generally always should create __init__.py files. In our example, our project structure would finally look like this:
+It’s worth noting that, contrary to JSON payloads, FastAPI doesn’t allow you to define Pydantic models to validate form data. Instead, you have to manually define each field as an argument for the path operation function.
+Now, let’s go on to discuss how to handle file uploads.
 
-It’s worth noting that even if empty __init__.py files are perfectly fine, you can actually write some code in them. In this case, it is executed the first time you import the package or one of its sub-modules. It’s useful to perform some initialization logic for your package. You now have a good overview of how to write some Python code. Feel free to write some small scripts to get acquainted with its peculiar syntax. We’ll now explore more advanced topics about the language that will prove useful during our journey with FastAPI.
+### File uploads
 
-## Operating over sequences – list comprehensions and generators
+Uploading files is a common requirement for web applications, whether this is images or documents. FastAPI provides a parameter function, File, that enables this.
 
-In this section, we’ll cover what are probably the most idiomatic constructions in Python: list comprehensions and generators. You’ll see that they are very useful for reading and transforming sequences of data with minimal syntax.
+Let’s take a look at a simple example where you can directly retrieve a file as a bytes object:
 
-### List comprehensions
+Once again, you can see that the approach is still the same: we define an argument for the path operation function, file, add a type hint, bytes, and then we use the File function as a default value for this argument. By doing this, FastAPI understands that it will have to retrieve raw data in a part of the body named file and return it as bytes.
+We simply return the size of this file by calling the len function on this bytes object.
 
-In programming, a very common task is to transform a sequence (let’s say, a list) into another, for example, to filter out or transform elements. Usually, you would write such an operation as we did in one of the previous examples of this chapter:
+In the code example repository, you should be able to find a picture of a cat: https://github. com/PacktPublishing/ Building-Data-Science-Applications-with-FastAPI- Second-Edition/blob/main/assets/cat.jpg.
 
-With this approach, we simply iterate over each element, check a condition, and add the element in an accumulator if it passes this condition.
+Let’s upload it on our endpoint using HTTPie. To upload a file, type in the name of the file upload field (here, it is file), followed by @ and the path of the file you want to upload. Don’t forget to set the --form option:
+It works! We have correctly got the size of the file in bytes.
 
-To go further in its readability philosophy, Python supports a neat syntax to perform this operation in only one statement: list comprehensions. Let’s see what our previous example looks like with this syntax:
+One drawback to this approach is that the uploaded file is entirely stored in memory. So, while it’ll work for small files, it is likely that you’ll run into issues for larger files. Besides, manipulating a bytes object is not always convenient for file handling.
 
-Actually, the result element can be any valid Python expression. In the following example, we use the randint function of the random standard module to generate a list of random integers:
+To fix this problem, FastAPI provides an UploadFile class. This class will store the data in memory up to a certain threshold and, after this, will automatically store it on disk in a temporary location. This allows you to accept much larger files without running out of memory. Furthermore, the exposed object instance exposes useful metadata, such as the content type, and a file-like interface. This means that you can manipulate it as a regular file in Python and feed it to any function that expects a file.
+To use it, you simply have to specify it as a type hint instead of bytes:
 
-This syntax is widely used by Python programmers and you’ll probably grow quite fond of it. The nice thing about this syntax is that it also works for sets and dictionaries. Quite simply, just replace the square brackets with curly braces to generate a set:
+Notice that, here, we return the filename and content_type properties. The content type is especially useful for checking the type of the uploaded file and possibly rejecting it if it’s not one of the types you expect.
 
-To create a dictionary, specify both the key and the value separated by a colon:
+You can even accept multiple files by type hinting the argument as a list of UploadFile:
+To upload several files with HTTPie, simply repeat the argument. It should appear as follows:
 
-### Generators
+Now, you should be able to handle form data and file uploads in a FastAPI application. So far, you’ve learned how to manage user-facing data. However, there are also very interesting pieces of information that are less visible: headers. We’ll explore them next.
 
-You might think that if you replace the square brackets with parentheses, you could obtain a tuple. Actually, you get a generator object. The main difference between generators and list comprehensions is that elements are generated on demand and not computed and stored all at once in memory. You could see a generator as a recipe to generate values.
-As we said, a generator can be defined simply by using the same syntax as list comprehensions, with parentheses:
+### Headers and cookies
 
-In this example, we define even_generator to output the even number of the numbers list. Then, we call the list constructor with this generator and assign it to the variable named even. This constructor will exhaust the iterator passed in the argument and build a proper list. We do it a second time and assign it to even_bis.
+Besides the URL and the body, another major part of the HTTP request are the headers. They contain all sorts of metadata that can be useful when handling requests. A common usage is to use them for authentication, for example, via the famous cookies.
 
-As you can see, even is a list with all the even numbers. However, even_bis is an empty list. This simple example is here to show you that a generator can be used only once. Once all the values have been produced, it’s over.
+Once again, retrieving them in FastAPI only involves a type hint and a parameter function. Let’s take a look at a simple example where we want to retrieve a header named Hello:
 
-This can be useful because you can start to iterate on the generator, stop to do something else, and resume iterating.
+Here, you can see that we simply have to use the Header function as a default value for the hello argument. The name of the argument determines the key of the header that we want to retrieve. Let’s see this in action:
 
-Another way to create generators is to define generator functions. In the following example, we’ll define a generator function that outputs even numbers from 2 to the limit passed in an argument:
+FastAPI was able to retrieve the header value. Since there was no default value specified (we put in an ellipsis), the header is required. If it’s missing, once again, you’ll get a 422 status error response.
 
-As you can see in this function, we use the yield keyword instead of return. When the interpreter reaches this statement, it pauses the function execution and yields the value to the generator consumer. When the main program asks for another value, the function is resumed in order to yield again.
+Additionally, notice that FastAPI automatically converts the header name into lowercase. Besides that, since header names are usually separated by a hyphen, -, it also automatically converts it into snake case. Therefore, it works out of the box with any valid Python variable name. The following example shows this behavior by retrieving the User-Agent header:
 
-This allows us to implement complex generators, even ones that will output different types of values over their course. Another interesting property of generator functions is that they allow us to execute some instructions when they have finished generating values. Let’s add a print statement at the end of the function we just reviewed:
+Now, let’s make a very simple request. We’ll keep the default user agent of HTTPie to see what happens:
 
-If you execute it in a Python interpreter, you’ll get this output:
+What is a user agent? The user agent is an HTTP header added automatically by most HTTP clients, such as HTTPie or cURL and web browsers. It’s a way for web servers to identify which kind of application made the request. In some cases, web servers can use this information to adapt the response.
 
-We get Generator exhausted in the output, which means that our code after the last yield statement is well executed.
-This is especially useful when you want to perform some cleanup operations after your generator has been exhausted: close a connection, remove temporary files, and so on.
+One very special case of the header is cookies. You could retrieve them by parsing the Cookie header yourself, but that would be a bit tedious. FastAPI provides another parameter function that automatically does it for you.
 
-## Writing object-oriented programs
+The following example simply retrieves a cookie named hello:
 
-As we said in the first section of this chapter, Python is a multi-paradigm language, and one of those paradigms is object-oriented programming. In this section, we’ll review how you can define classes and how you can instantiate and use objects. You’ll see that Python syntax is once again very lightweight.
+Notice that we type hinted the argument as str | None, and we set a default value of None to the Cookie function. This way, even if the cookie is not set in the request, FastAPI will proceed and not generate a 422 status error response.
 
-### Defining a class
+Headers and cookies can be very useful tools for implementing authentication features. In Chapter 7, Managing Authentication and Security in FastAPI, you’ll learn that there are built-in security functions that can help you to implement common authentication schemes.
 
-Defining a class in Python is straightforward: use the class keyword, type the name of your class, and begin a new block. You can then define methods under it just like you would for regular functions. Let’s review an example:
+### The request object
 
-Notice that the first argument of each method must be self, which is a reference to the current object instance (the equivalent of this in other languages).
+Sometimes, you might find that you need to access a raw request object with all of the data associated with it. That’s possible. Simply declare an argument on your path operation function type hinted with the Request class:
 
-To instantiate a class, simply call the class as you would for a function and assign it to a variable. You can then access the methods using dot notation.
+Under the hood, this is the Request object from Starlette, which is a library that provides all the core server logic for FastAPI. You can view a complete description of the methods and properties of this object in the official documentation of Starlette (https://www.starlette.io/requests/).
 
-Class and method naming By convention, classes should be named using camel case: MyWonderfulClass but not my_wonderful_class. Methods should use snake case, like regular functions.
+Congratulations! You have now learned all of the basics regarding how to handle request data in FastAPI. As you learned, the logic is the same no matter what part of the HTTP request you want to look at. Simply name the argument you want to retrieve, add a type hint, and use a parameter function to tell FastAPI where it should look. You can even add some validation logic!
+In the next section, we’ll explore the other side of a REST API job: returning a response.
 
-Obviously, you can also set class properties. To do this, we’ll implement the __init__ method, whose goal is to initialize values:
+## Customizing the response
 
-In this example, __init__ allows us to set a default_name property, which will be used by the greet method if no name is provided in the argument. As you can see, you can simply access this property through dot notation.
+In the previous sections, you learned that directly returning a dictionary or a Pydantic object in your path operation function was enough for FastAPI to return a JSON response.
+Most of the time, you’ll want to customize this response a bit further; for instance, by changing the status code, raising validation errors, and setting cookies. FastAPI offers different ways to do this, from the simplest case to the most advanced one. First, we’ll learn how to customize the response declaratively by using path operation parameters.
 
-Be careful though: __init__ is not a constructor. In typical object-oriented languages, a constructor is a method to actually create the object in memory. In Python, when __ init__ is called, the object is already created in memory (notice we have access to the self instance). Actually, there is a method to define the constructor, __new__, but it’s rarely used in common Python programs.
+### Path operation parameters
 
-Private methods and properties In Python, there is no such thing as private methods or properties. Everything will always be accessible from the outside. However, by convention, you can prefix your private methods and properties with an underscore to suggest that they should be considered private: _private_method.
+In the Creating a first endpoint and running it locally section, you learned that in order to create a new endpoint, you had to put a decorator on top of the path operation function. This decorator accepts a lot of options, including ones to customize the response.
 
-You now have the basics of object-oriented programming in Python! We’ll now focus on magic methods, which will allow us to do clever things with objects.
+- The status code
 
-### Implementing magic methods
+The most obvious thing to customize in an HTTP response is the status code. By default, FastAPI will always set a 200 status when everything goes well during your path operation function execution.
 
-Magic methods are a set of predefined methods that bear a special meaning in the language. They are easy to recognize as they start and end with two underscores. Actually, we already saw one of those magic methods: __init__! Those methods are not called directly but are used by the interpreter when using other constructs such as standard functions or operators.
+Sometimes, it might be useful to change this status. For example, it’s good practice in a REST API to return a 201 Created status when the execution of the endpoint ends up in the creation of a new object.
 
-To understand how they are useful, we’ll review the most used ones. Let’s start with __repr__ and __str__.
+To set this, simply specify the status_code argument on the path decorator:
 
-- Object representations – __repr__ and __str__
+The decorator arguments come right after the path as keyword arguments. The status_code option simply expects an integer representing the status code. We could have written status_code=201, but FastAPI provides a useful list in the status sub-module that improves code comprehensiveness, as you can see here.
 
-When you define a class, it’s generally useful to be able to get a readable and clear string representation of an instance. For this purpose, Python provides two magic methods: __repr__ and __str__. Let’s see how they work on a class representing a temperature in either degrees Celsius or degrees Fahrenheit:
+We can try this endpoint to obtain the resulting status code:
+We got our 201 status code.
 
-If you run this example, you’ll notice that print(t) prints the same thing as print(str(t)). Through print, the interpreter called the __str__ method to get the string representation of our object. This is what __str__ is for: giving a nice string representation of an object for the end user.
+It’s important to understand that this option to override the status code is only useful when everything goes well. If your input data was invalid, you would still get a 422 status error response.
 
-On the other hand, you saw that even though they’re very similar, we implemented __repr__ in a different way. The purpose of this method is to give an internal representation of the object that is unambiguous. By convention, this should give the exact statement that would allow us to recreate the very same object.
+Another interesting scenario for this option is when you have nothing to return, such as when you delete an object. In this case, the 204 No content status code is a good fit. In the following example, we implement a simple delete endpoint that sets this response status code:
 
-Now that we can represent temperatures with our class, what would happen if we tried to compare them?
+Notice that you can very well return None in your path operation function. FastAPI will take care of it and return a response with an empty body.
 
-- Comparison methods – __eq__, __gt__, __lt__, and so on
+In the Setting the status code dynamically section, you’ll learn how to customize the status code dynamically inside the path operation logic.
 
-Of course, comparing two temperatures with different units would lead to unexpected results. Fortunately, magic methods allow us to overload the default operators to perform meaningful comparisons. Let’s expand on our previous example:
+- The response model
 
-In the __init__ method, we convert the temperature value into Kelvin given the current scale. This will help us to make comparisons. Then, let’s define __eq__ and __lt__:
+With FastAPI, the main use case is to directly return a Pydantic model that automatically gets turned into properly formatted JSON. However, quite often, you’ll find that there are some differences between the input data, the data you store in your database, and the data you want to show to the end user. For instance, perhaps some fields are private or only for internal use, or perhaps some fields are only useful during the creation process and then discarded afterward.
 
-As you can see, those methods simply accept another argument, which is the other object instance to compare with. We then just have to perform our comparison logic. By doing this, we can perform comparison just as we would for any variable:
+Now, let’s consider a simple example. Assume you have a database containing blog posts. Those blog posts have several properties, such as a title, content, or creation date. Additionally, you store the number of views of each one, but you don’t want the end user to see it.
 
-That’s it! If you wish to have all the comparison operators available, you should also implement all the other comparison magic methods: __le__, __gt__, and __ge__.
+You could take the standard approach as follows:
+And then call this endpoint:
 
-The type of the other instance is not guaranteed In this example, we assumed the other variable was also a Temperature object. In the real world, however, this is not guaranteed and developers could try to compare Temperature with another object, which would likely lead to errors or weird behaviors. To prevent this, you should check the type of the other variable using isinstance to ensure we handle Temperature, or raise a proper exception otherwise.
+The nb_views property is in the output. However, we don’t want this. This is exactly what the response_model option is for, to specify another model that only outputs the properties we want. First, let’s define another Pydantic model with only the title property:
 
-- Operators – __add__, __sub__, __mul__, and so on
+Then, the only change is to add the response_model option as a keyword argument for the path decorator:
 
-Similarly, you could also define what would happen when trying to add or multiply two Temperature objects. We won’t go into much detail here as it works exactly like the comparison operators.
+Now, let’s try to call this endpoint:
+The nb_views property is no longer there! Thanks to the response_model option, FastAPI automatically converted our Post instance into a PublicPost instance before serializing it. Now our private data is safe!
 
-- Callable object – __call__
+The good thing is that this option is also considered by the interactive documentation, which will show the correct output schema to the end user, as you can see in Figure 3.2:
 
-The last magic method we’ll review is __call__. This one is a bit special because it enables you to call your object instance like a regular function. Let’s take an example:
+So far, you’ve looked at options that can help you quickly customize the response generated by FastAPI. Now, we’ll introduce another approach that will open up more possibilities.
 
-The __call__ method can be defined like any other method, with any argument you wish. The only difference is how you call it: you just pass the argument directly on the object instance variable as you would do for a regular function.
+### The response parameter
 
-This pattern can be useful if you want to define a function that maintains some kind of local state, as we did here in our example, or in cases where you need to provide a callable object but have to set some parameters. Actually, this is the use case we’ll encounter when defining class dependencies for FastAPI.
+The body and status code are not the only interesting parts of an HTTP response. Sometimes, it might be useful to return some custom headers or set cookies. This can be done dynamically using FastAPI directly within the path operation logic. How so? By injecting the Response object as an argument of the path operation function.
 
-As we saw, magic methods are an excellent way to implement operations for our custom classes and make them easy to use in a purely object-oriented way. We haven’t covered every magic method available but you can find the complete list in the official documentation: https://docs.python. org/3/reference/datamodel.html#special-method-names.
+- Setting headers
 
-We’ll now focus on another essential characteristic of object-oriented programming: inheritance.
+As usual, this only involves setting the proper type hinting to the argument. The following example shows you how to set a custom header:
 
-### Reusing logic and avoiding repetition with inheritance
+The Response object gives you access to a set of properties, including headers. It’s a simple dictionary where the key is the name of the header, and the value is its associated value. Therefore, it’s relatively straightforward to set your own custom header.
 
-Inheritance is one of the core concepts of object-oriented programming: it allows you to derive a new class from existing ones, enabling you to reuse some logic and overload the parts that are specific to this new class. Of course, this is supported in Python. We’ll take very simple examples to understand the mechanism underneath.
-First of all, let’s take an example of very simple inheritance:
+Also, notice that you don’t have to return the Response object. You can still return JSON-encodable data, and FastAPI will take care of forming a proper response, including the headers you’ve set. Therefore, the response_model and status_code options we discussed in the Path operation parameters section are still honored.
 
-The Child class inherits from the A class. The syntax is simple: the class we want to inherit from is specified between parentheses after the child class name.
+Let’s view the result:
+Our custom header is part of the response.
+As we mentioned earlier, the good thing about this approach is that it’s within your path operation logic. That means you can dynamically set headers depending on what’s happening in your business logic.
 
-The pass statement
-pass is a statement that does nothing. Since Python relies only on indentation to denote blocks, it’s a useful statement to create an empty block, as you would do with curly braces in other programming languages. In this example, we don’t want to add some logic to the Child class, so we just write pass.
-Another way to do it is to add a docstring just below the class definition.
+- Setting cookies
 
-If you wish to overload a method but still want to get the result of the parent method, you can call the super function:
+Cookies can also be particularly useful when you want to maintain the user’s state within the browser between each of their visits.
 
-You now know how to use basic inheritance in Python. But there is more: we can also have multiple inheritance!
+To prompt the browser to save some cookies in your response, you could, of course, build your own Set-Cookie header and set it in the headers dictionary, just as we saw in the preceding command block. However, since this can be quite tricky to do, the Response object exposes a convenient set_cookie method:
 
-- Multiple inheritance
+Here, we simply set a cookie, named cookie-name, with the value of cookie-value. It’ll be valid for 86,400 seconds before the browser removes it.
 
-As its name suggests, multiple inheritance allows you to derive a child class from multiple classes. This way, you can combine the logic of several classes into one. Let’s take an example:
+Let’s try it:
+Here, you can see that we have a nice Set-Cookie header with all of the properties of our cookie.
 
-Once again, the syntax is quite straightforward: just list all the parent classes with a comma. Now, the Child class can call both methods, f and g.
+As you may know, cookies have a lot more options than the ones we have shown here; for instance, path, domain, and HTTP-only. The set_cookie method supports all of them. You can read about the full list of options in the official Starlette documentation (since Response is also borrowed from Starlette) at https://www.starlette.io/responses/#set-cookie.
 
-Mixins Mixins are common patterns in Python that take advantage of the multiple inheritance feature. Basically, mixins are short classes containing a single feature that you often want to reuse. You can then compose concrete classes by combining mixins.
+If you’re not familiar with the Set-Cookie header, we also recommend that you refer to MDN Web Docs, which can be accessed at https://developer.mozilla.org/en-US/docs/Web/ HTTP/Headers/Set-Cookie.
+Of course, if you need to set several cookies, you can call this method several times.
 
-However, what would happen if both A and B classes implemented a method named f? Let’s try it out:
+- Setting the status code dynamically
 
-If you call the f method of Child, you’ll get the value "A". In this simple case, Python will consider the first matching method following the order of the parent classes. However, for more complex hierarchies, the resolution may not be so obvious: this is the purpose of the Method Resolution Order (MRO) algorithm. We won’t go into much detail here but you can have a look at the official document explaining the algorithm implemented by Python: https://www.python.org/download/ releases/2.3/mro/.
+In the Path operation parameters section, we discussed a way to declaratively set the status code of the response. The drawback to this approach is that it’ll always be the same no matter what’s happening inside.
 
-If you are confused about the MRO of your class, you can call the mro method on your class to get a list of considered classes in order:
+Let’s assume that we have an endpoint that updates an object in the database or creates it if it doesn’t exist. A good approach would be to return a 200 OK status when the object already exists or a 201 Created status when the object has to be created.
 
-Well done! You now have a good overview of object-oriented programming in Python. Those concepts will be helpful when defining dependencies in FastAPI.
+To do this, you can simply set the status_code property on the Response object:
 
-We’ll now review some of the most recent and trending features in Python, upon which FastAPI relies heavily. We’ll start with type hinting.
+First, we check whether the ID in the path exists in the database. If not, we change the status code to 201. Then, we simply assign the post to this ID in the database.
 
-## Type hinting and type checking with mypy
+Let’s try with an existing post first:
+The post with an ID of 1 already exists, so we get a 200 status. Now, let’s try with a non-existing ID:
+We get a 201 status!
 
-In the first section of this chapter, we said that Python was a dynamically typed language: the interpreter doesn’t check types at compile time but rather at runtime. This makes the language a bit more flexible and the developer a bit more efficient. However, if you are experienced with that kind of language, you probably know that it’s easy to produce errors and bugs in this context: forgetting arguments, type mismatches, and so on.
+Now you have a way to dynamically set the status code in your logic. Bear in mind, though, that they won’t be detected by the automatic documentation. Therefore, they won’t appear as a possible response status code in it.
 
-This is why Python introduced type hinting starting in version 3.5. The goal is to provide a syntax to annotate the source code with type annotations: each variable, function, and class can be annotated to give indications about the types they expect. This doesn’t mean that Python becomes a statically typed language. Those annotations remain completely optional and are ignored by the interpreter. However, those annotations can be used by static type checkers, which will check whether your code is valid and consistent following the annotations. Hence, it greatly helps you to reduce errors and write self-explanatory code. One of those tools, mypy, is widely used by the community in this context.
+You might be tempted to use this approach to set error status codes, such as 400 Bad Request or 404 Not Found. In fact, you shouldn’t do that. FastAPI provides a dedicated way to do this: HTTPException.
 
-### Getting started
+### Raising HTTP errors
 
-To understand how type annotations work, we’ll review a simple annotated function:
+When calling a REST API, quite frequently, you might find that things don’t go very well; you might come across the wrong parameters, invalid payloads, or objects that don’t exist anymore. Errors can happen for a lot of reasons.
 
-As you can see here, we simply added the type of the name argument after a colon. We also specified the return type after an arrow. For built-in types, such as str or int, we can simply use them as type annotations. We’ll see a little later in this section how to annotate more complex types such as lists or dictionaries.
+That’s why it’s critical to detect them and raise a clear and unambiguous error message to the end user so that they can correct their mistake. In a REST API, there are two very important things that you can use to return an informative message: the status code and the payload.
 
-We’ll now install mypy to perform a type check on this file. This can be done like any other Python package:
-Then, you can run a type check on your source file:
-As you can see, mypy tells us that everything is good with our typing. Let’s try to modify our code a bit to provoke a type error:
+The status code can give you a precious hint about the nature of the error. Since HTTP protocols provide a wide range of error status codes, your end user might not even need to read the payload to understand what’s wrong.
 
-Quite simply, we just said that the return type of our function is now int, but we are still returning a string. If you run this code, it’ll execute perfectly well: as we said, the interpreter ignores type annotations. However, let’s see what mypy tells us about it:
+Of course, it’s always better to provide a clear error message at the same time in order to give further details and add some useful information regarding how the end user can solve the issue.
 
-This time, it complains. It clearly tells us what is wrong here: the return value is a string, while an integer was expected!
+Error status codes are crucial 
+Some APIs choose to always return a 200 status code with the payload containing a property stating whether the request was successful or not, such as {"success": false}. Don’t do that. The RESTful philosophy encourages you to use the HTTP semantics to give meaning to the data. Having to parse the output and look for a property to determine whether the call was successful is a bad design.
 
-Code editors and IDE integration Having type checking is good, but it may be a bit tedious to run mypy manually on the command line. Fortunately, it integrates well with the most popular code editors and IDEs. Once configured, it’ll perform type checking while you type and show you errors directly on faulty lines. Type annotations also help the IDE to perform clever things such as auto-completion. You can check in the official documentation of mypy how to set it up for your favorite editor: https://github.com/python/mypy#integrations.
+To raise an HTTP error in FastAPI, you’ll have to raise a Python exception, HTTPException. This exception class will allow us to set a status code and an error message. It is caught by FastAPI error handlers that take care of forming a proper HTTP response.
 
-You understand the basics of type hinting in Python. We’ll now review more advanced examples, especially with non-scalar types.
+In the following example, we’ll raise a 400 Bad Request error if the password and password_ confirm payload properties don’t match:
 
-### Type data structures
+As you can see here, if the passwords are not equal, we directly raise HTTPException. The first argument is the status code, and the detail keyword argument lets us write an error message.
 
-So far, we’ve seen how to annotate variables for scalar types such as str or int. But we’ve seen that there are data structures such as lists and dictionaries that are widely used in Python. In the following example, we’ll show how to type-hint the basic data structures in Python:
+Let’s examine how it works:
+Here, we do get a 400 status code, and our error message has been wrapped nicely in a JSON object with the detail key. This is how FastAPI handles errors by default.
 
-You can see here that we can use the list, tuple, set, and dict standard classes as type hints. However, they expect you to provide the type of the values composing your structure. It’s the well-known concept of generics in object-oriented programming. In Python, they are defined using square brackets.
+In fact, you are not limited to a simple string for the error message: you can return a dictionary or a list in order to get structured information about the error. For example, take a look at the following code snippet:
 
-Of course, there are more complex use cases. For example, having a list with elements of different types is perfectly valid in Python. To make this work with type checkers, we can simply use the | notation to specify several allowed types:
+And that’s it! You now have the power to raise errors and give meaningful information about them to the end user.
 
-In this case, our list will accept either integers or floating-point numbers. Of course, mypy will complain if you try to add an element in this list that is neither an int nor a float type.
+So far, the methods you have seen should cover the majority of cases you’ll encounter during the development of an API. Sometimes, however, you’ll have scenarios where you’ll need to build a complete HTTP response yourself. This is the subject of the next section.
 
-There is also another case where this is useful: quite often, you’ll have function arguments or return types that either return a value or None. Thus, you could write something like this:
-The allowed value is either a string or None.
+### Building a custom response
 
-Type annotations were different before Python 3.9 
-Before Python 3.9, it wasn’t possible to annotate lists, tuples, sets, and dictionaries using the standard class. We needed to import special classes from the typing module: l: List[int] = [1, 2, 3, 4, 5]. The | notation wasn’t available either. We needed to use a special Union class from typing: l: List[Union[int, float]] = [1, 2.5, 3.14, 5]
-This way of annotating is now deprecated, but you may still find it in older code bases.
-Type hinting and type checking with mypy
+Most of the time, you’ll let FastAPI take care of building an HTTP response by simply providing it with some data to serialize. Under the hood, FastAPI uses a subclass of Response called JSONResponse. Quite predictably, this response class takes care of serializing some data to JSON and adding the correct Content-Type header.
 
-When dealing with complex types, it may be useful to alias and reuse them at will without the need to rewrite them each time. To do this, you can simply assign them as you would do for any variable:
+However, there are other response classes that cover common cases:
+HTMLResponse: This can be used to return an HTML response
+PlainTextResponse: This can be used to return raw text
+RedirectResponse: This can be used to make a redirection
+Customizing the response
+StreamingResponse: This can be used to stream a flow of bytes
+FileResponse: This can be used to automatically build a proper file response given the path of a file on the local disk
 
-By convention, types should be named using camel case, like classes. Talking about classes, let’s see how type hinting works with them:
+You have two ways of using them: either setting the response_class argument on the path decorator or directly returning a response instance.
 
-Actually, there is nothing special about classes’ type hinting. You just annotate the methods as you would for a regular function. If you need to use your class in an annotation, like here for a list of posts, you just have to use the class name.
+- Using the response_class argument
 
-Sometimes, you’ll have to write a function or method that accepts another function in an argument. In this case, you’ll need to give the type signature of this function.
+This is the simplest and most straightforward way to return a custom response. Indeed, by doing this, you won’t even have to create a class instance: you’ll just have to return the data as you usually do for standard JSON responses.
+This is well suited for HTMLResponse and PlainTextResponse:
 
-### Type function signatures with Callable
+By setting the response_class argument on the decorator, you can change the class that will be used by FastAPI to build the response. Then, you can simply return valid data for this kind of response. Notice that the response classes are imported through the fastapi.responses module.
 
-A more advanced use case is to be able to have types for function signatures. For example, it can be useful when you need to pass functions as arguments of other functions. For this task, we can use the Callable class, available in the collections.abc module. In the following example, we’ll implement a function called filter_list expecting as arguments a list of integers and a function returning a Boolean given an integer:
+The nice thing about this is that you can combine this option with the ones we saw in the Path operation parameters section. Using the Response parameter that we described in The response parameter section also works perfectly!
 
-What is the collections.abc module?
-collections.abc is a module from the standard Python library providing abstract base classes for the common objects we use daily in Python: iterators, generators, callables, sets, mappings, and so on. They are mainly useful in advanced use cases where we need to implement new custom objects that should behave like an iterator, generator, and so on. Here, we only use them as type hints.
+For the other response classes, however, you’ll have to build the instance yourself and then return it.
 
-You can see here that we define a type alias, ConditionFunction, thanks to Callable. Once again, this is a generic class that expects two things: first, the list of argument types and then the return type. Here, we expect a single integer argument and the return type is a Boolean.
+- Making a redirection
 
-We can then use this type in the annotation of the filter_list function. mypy will then ensure that the condition function passed in the argument conforms to this signature. For example, we could write a simple function to check the parity of an integer, as shown in the next sample:
+As mentioned earlier, RedirectResponse is a class that helps you build an HTTP redirection, which simply is an HTTP response with a Location header pointing to the new URL and a status code in the 3xx range. It simply expects the URL you wish to redirect to as the first argument:
 
-It’s worth noting, however, that there is no syntax to indicate optional or keyword arguments. In this case, you can write Callable[..., bool], the ellipsis (...) here meaning any number of arguments.
+By default, it’ll use the 307 Temporary Redirect status code, but you can change this through the status_code argument:
 
-### Any and cast
+- Serving a file
 
-In some situations, the code is so dynamic or complicated that it won’t be possible to annotate it correctly or the type checker may not correctly infer the type. For this, we can use Any and cast. They are available in the typing module, which was introduced by Python to help with more specific use cases and constructs regarding type hints.
+Now, let’s examine how FileResponse works. This is useful if you wish to propose some files to download. This response class will automatically take care of opening the file on disk and streaming the bytes along with the proper HTTP headers.
 
-Any is a type annotation telling the type checker the variable or argument can be anything. In this case, any type of value will be valid for the type checker:
+Let’s take a look at how we can use an endpoint to download a picture of a cat. You’ll find this in the code examples repository at https://github.com/PacktPublishing/ Building- Data-Science-Applications-with-FastAPI-Second-Edition/blob/main/ assets/cat.jpg.
 
-The second one, cast, is a function that lets you override the type inferred by the type checker. It’ll force the type checker to consider the type you specify:
+We just need to return an instance of FileResponse with the path of the file we want to serve as the first argument:
 
-Be careful though: the cast function is only meaningful for type checkers. As for every other type of annotation, the interpreter completely ignores it and doesn’t perform a real cast.
-While convenient, try to refrain from using those utilities too often. If everything is Any or cast to a different type, you completely miss the benefits of static type checking.
+The pathlib module Python provides a module to help you work with file paths, pathlib. It’s the recommended way to manipulate paths, as it takes care of handling them correctly, depending on the operating system you are running. You can read about the functions of this module in the official documentation at https://docs.python.org/3/library/pathlib.html.
 
-As we have seen, type hinting and type checking are really helpful in reducing errors while developing and maintaining high-quality code. But that’s not all. Actually, Python allows you to retrieve type annotations at runtime and perform some logic based on them. This enables you to do clever things such as dependency injection: just by type hinting an argument in a function, a library can automatically interpret it and inject the corresponding value at runtime. This concept is at the heart of FastAPI.
+Let’s examine what the HTTP response looks like:
+As you can see, we have the right Content-Length and Content-Type headers for our image. The response even sets the Etag and Last-Modified headers so that the browser can properly cache the resource. HTTPie doesn’t show the binary data in the body; however, if you open the endpoint in your browser, you’ll see the cat appear!
 
-Another key approach in FastAPI is asynchronous I/O. This will be the last subject we’ll cover in this chapter.
+- Custom responses
 
-## Working with asynchronous I/O
+Finally, if you really have a case that’s not covered by the provided classes, you always have the option to use the Response class to build exactly what you need. With this class, you can set everything, including the body content and the headers.
 
-If you have already worked with JavaScript and Node.js, you have probably come across the concepts of promises and async/await keywords, which are characteristic of the asynchronous I/O paradigm. Basically, this is a way to make I/O operations non-blocking and allow the program to perform other tasks while the read or write operation is ongoing. The main motivation behind this is that I/O operations are slow: reading from disk, network requests are million times slower than reading from RAM or processing instructions. In the following example, we have a simple script that reads a file on disk:
+The following example shows you how to return an XML response:
+You can view the complete list of arguments in the Starlette documentation at https://www. starlette.io/responses/#response.
 
-We see that the script will block until we have retrieved the data from the disk and, as we said, this can be a long time. 99% percent of the execution time of the program is spent on waiting for the disk. Usually, it’s not an issue for simple scripts like this because you probably won’t have to perform other operations in the meantime.
+Path operation parameters and response parameters won’t have any effect Bear in mind that when you directly return a Response class (or one of its subclasses), the parameters you set on the decorator or the operations you make on the injected Response object won’t have any effect. They are completely overridden by the Response object you return. If you need to customize the status code or the headers, then use the status_code and headers arguments when instantiating your class.
 
-However, in other situations, it could be an opportunity to perform other tasks. The typical case that is of great interest in this book is web servers. Imagine we have a first user making a request that performs a 10-second-long database query before sending the response. If a second user makes another request in the meantime, they’ll have to wait for the first response to finish before getting their answer.
+Well done! Now you have all the knowledge required to create the response you need for your REST API. You’ve learned that FastAPI comes with sensible defaults that can help you create proper JSON responses in no time. At the same time, it also gives you access to more advanced objects and options to allow you to make custom responses.
 
-To solve this, traditional Python web servers based on the Web Server Gateway Interface (WSGI), such as Flask or Django, spawn several workers. Those are sub-processes of the web server that are all able to answer requests. If one is busy processing a long request, others can answer new requests.
+So far, all of the examples we’ve looked at have been quite short and simple. However, when you’re developing a real application, you’ll probably have dozens of endpoints and models. In the final section of this chapter, we’ll examine how to organize such projects to make them modular and easier to maintain.
 
-With asynchronous I/O, a single process won’t block when processing a request with a long I/O operation. While it waits for this operation to finish, it can answer other requests. When the I/O operation is done, it resumes the request logic and can finally answer the request.
+## Structuring a bigger project with multiple routers
 
-Technically, this is achieved through the concept of an event loop. Think of it as a conductor that will manage all the asynchronous tasks you send to it. When data is available or when the write operation is done for one of those tasks, it’ll ping the main program so that it can perform the next operations. Underneath, it relies upon the operating system select and poll calls, which are precisely there to ask for events about I/O operations at the operating system level. You can read very interesting details about this in the article Async IO on Linux: select, poll, and epoll by Julia Evans: https:// jvns.ca/blog/2017/06/03/async-io-on-linux--select--poll--and-epoll.
+When building a real-world web application, you’re likely to have a lot of code and logic: data models, API endpoints, and services. Of course, all of those can’t live in a single file; we have to structure the project so that it’s easy to maintain and evolve.
 
-Python first implemented asynchronous I/O in version 3.4 and it has since greatly evolved, notably with the introduction of the async/await keywords in version 3.6. All the utilities to manage this paradigm are available through the standard asyncio module. Not long after, the spiritual successor of WSGI for asynchronous-enabled web servers, Asynchronous Server Gateway Interface (ASGI), was introduced. FastAPI relies on this, and this is one of the reasons why it shows such great performance.
+FastAPI supports the concept of routers. They are “sub-parts” of your API and are usually dedicated to a single type of object, such as users or posts, which are defined in their own files. You can then include them in your main FastAPI app so that it can route it accordingly.
 
-We’ll now review the basics of asynchronous programming in Python. The following example is a simple Hello world script using asyncio:
+In this section, we’ll explore how to use routers and how you can structure a FastAPI project. While this structure is one way to do it and works quite well, it’s not a golden rule and can be adapted to your own needs.
 
-When you wish to define an asynchronous function, you just have to add the async keyword before def. This allows you to use the await keyword inside it. Such async functions are called coroutines.
+In the code examples repository, there is a folder named chapter03_project, which contains a sample project with this structure: https://github.com/PacktPublishing/Building- Data-Science-Applications-with-FastAPI-Second-Edition/tree/main/ chapter03_project
 
-Inside it, we first call the print function and then call the asyncio.sleep coroutine. This is the async equivalent of time.sleep, which blocks the program for a given number of seconds. Notice that we prefixed the call with the await keyword. This means that we want to wait for this coroutine to finish before proceeding. This is the main benefit of async/await keywords: writing code that looks like synchronous code. If we omitted await, the coroutine object would have been created but never executed.
+Here is the project structure:
+Here, you can see that we chose to have packages that contain Pydantic models on one side and routers on the other side. At the root of the project, we have a file named app.py, which will expose the main FastAPI application. The db.py file defines a dummy database for the sake of the example.
 
-Finally, notice that we use the asyncio.run function. This is the machinery that will create a new event loop, execute your coroutine, and return its result. It should be the main entry point of your async program.
+The __init__.py files are there to properly define our directories as Python packages. You can read more details about this in Chapter 2, Python Programming Specificities, in the Packages, modules, and imports section.
 
-This example is nice but not very interesting from an asynchronous point of view: since we are waiting for only one operation, this is not very impressive. Let’s see an example where we execute two coroutines concurrently:
+First, let’s examine what a FastAPI router looks like:
+As you can see here, instead of instantiating the FastAPI class, you instantiate the APIRouter class. Then, you can use it exactly the same way to decorate your path operation functions.
 
-Here, we have a printer coroutine that prints its name a given number of times. Between each print, it sleeps for 1 second.
-Then, our main coroutine uses the asyncio.gather utility, which schedules several coroutines for concurrent execution. If you run this script, you’ll get the following result:
+Also, notice that we import the Pydantic models from the relevant module in the schemas package.
 
-We get a succession of A and B. It means our coroutines were executed concurrently and that we didn’t wait for the first one to finish before starting the second one.
-You might wonder why we added the asyncio.sleep call in this example. Actually, if we removed it, we would have obtained this result:
+We won’t go into detail about the logic of the endpoints, but we invite you to read about it. It uses all the FastAPI features that we’ve explored so far.
 
-That doesn’t look very concurrent, and indeed, it’s not. This is one of the main pitfalls of asyncio: writing code in a coroutine doesn’t necessarily mean that it won’t block. Regular operations such as computations are blocking and will block the event loop. Usually, this is not a problem since those operations are fast. The only operations that won’t block are proper I/O operations that are designed to work asynchronously. This is different from multiprocessing where operations are executed on child processes, which, by nature, doesn’t block the main one.
+Now, let’s take a look at how to import this router and include it within a FastAPI application:
+As usual, we instantiate the FastAPI class. Then, we use the include_router method to add our sub-router. You can see that we simply imported the router from its relevant module and used it as the first argument of include_router. Notice that we used the as syntax while importing. Since both users and posts routers are named the same inside their module, this syntax allows us to alias their name and, thus, avoid name collision.
 
-Because of this, you’ll have to be careful when choosing a third-party library for interacting with databases, APIs, and so on. Some have been adapted to work asynchronously and some alternatives have been developed in parallel with the standard ones. We’ll see some of them in the following chapters, especially when working with databases.
+Additionally, you can see that we set the prefix keyword argument. This allows us to prefix the path of all the endpoints of this router. This way, you don’t have to hardcode it into the router logic and can easily change it for the whole router. It can also be used to provide versioned paths of your API, such as /v1.
 
-We’ll end this quick introduction to asynchronous I/O here. There are some other subtleties underneath but, generally, the basics we’ve seen here will allow you to leverage the power of asyncio with FastAPI.
+Finally, the tags argument helps you to group endpoints in the interactive documentation for better readability. By doing this, the posts and users endpoints will be clearly separated in the documentation.
+
+And that’s all you need to do! You can run this whole application, as usual, with Uvicorn:
+If you open the interactive documentation at http://localhost:8000/docs, you’ll see that all the routes are there, grouped by the tags we specified when including the router:
+
+Once again, you can see that FastAPI is both powerful and very lightweight to use. The good thing about routers is that you can even nest them and include sub-routers in routers that include other routers themselves. Therefore, you can have a quite complex routing hierarchy with very low effort.
