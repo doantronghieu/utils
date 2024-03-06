@@ -1,5 +1,0 @@
-- Definition: Explanation, Core Meaning,  Understanding
-- Characteristics: Key Features, Essential Attributes, Distinguishing Traits
-- Types: Varieties, Classifications, Different Forms
-- Usage: Practical Applications, Common Scenarios, Real-world Examples
-- Others: Additional Insights, Miscellaneous Information, Noteworthy Details, History, Related Concepts, Pros and Cons
