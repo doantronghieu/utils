@@ -1,407 +1,278 @@
-The main goal of a REST API is, of course, to read and write data. So far, we’ve solely worked with the tools given by Python and FastAPI, allowing us to build reliable endpoints to process and answer requests. However, we haven’t been able to effectively retrieve and persist that information: we don’t have a database.
 
-The goal of this chapter is to show you how you can interact with different types of databases and related libraries inside FastAPI. It’s worth noting that FastAPI is completely agnostic regarding databases: you can use any system you want and it’s your responsibility to integrate it. This is why we’ll review two different approaches to integrating a database: using an object-relational mapping (ORM) system for SQL databases and using a NoSQL database.
+Most of the time, you don’t want everyone on the internet to have access to your API, without any restrictions on the data they can create or read. That’s why you’ll need to at least protect your application with a private token or have a proper authentication system to manage the rights given to each user. In this chapter, we’ll see how FastAPI provides security dependencies to help us retrieve credentials by following different standards that are directly integrated into the automatic documentation. We’ll also build a basic user registration and authentication system to secure our API endpoints.
+
+Finally, we’ll cover the security challenges you must tackle when you want to call your API from a web application in a browser – in particular, the risks of CORS and CSRF attacks.
 
 In this chapter, we’re going to cover the following main topics:
-An overview of relational and NoSQL databases
-Communicating with a SQL database with SQLAlchemy ORM
-Communicating with a MongoDB database using Motor
+Security dependencies in FastAPI
+Retrieving a user and generating an access token
+Securing API endpoints for authenticated users
+Securing endpoints with access tokens
+Configuring CORS and protecting against CSRF attacks
 
-# An overview of relational and NoSQL databases
+# Security dependencies in FastAPI
 
-The role of a database is to store data in a structured way, preserve the integrity of the data, and offer a query language that enables you to retrieve this data when an application needs it.
+To protect REST APIs, and HTTP endpoints more generally, lots of standards have been proposed. Here is a non-exhaustive list of the most common ones:
 
-Nowadays, when it comes to choosing a database for your web project, you have two main choices: relational databases, with their associated SQL query language, and NoSQL databases, named in opposition to the first category.
+Basic HTTP authentication: In this scheme, user credentials (usually, an identifier such as an email address and password) are put into an HTTP header called Authorization. The value consists of the Basic keyword, followed by the user credentials encoded in Base64. This is a very simple scheme to implement but not very secure since the password appears in every request.
 
-Selecting the right technology for your project is left up to you as it greatly depends on your needs and requirements. In this section, we’ll outline the main characteristics and features of those two database families and try to give you some insights into choosing the right one for your project.
+Cookies: Cookies are a useful way to store static data on the client side, usually on web browsers, that is sent in each request to the server. Typically, a cookie contains a session token that can be verified by the server and linked to a specific user.
 
-## Relational databases
+Tokens in the Authorization header: Probably the most used header in a REST API context, this simply consists of sending a token in an HTTP Authorization header. The token is often prefixed by a method keyword, such as Bearer. On the server side, this token can be verified and linked to a specific user.
 
-Relational databases have existed since the 1970s, and they have proved to be very performant and reliable over time. They are almost inseparable from SQL, which has become the de facto standard for querying such databases. Even if there are a few differences between one database engine and another, most of the syntax is common, simple to understand, and flexible enough to express complex queries.
+Each standard has its pros and cons and is suitable for a specific use case.
 
-Relational databases implement the relational model: each entity, or object, of the application is stored in tables. For example, if we consider a blog application, we could have tables that represent users, posts, and comments.
+As you already know, FastAPI is mainly about dependency injection and callables that are automatically detected and called at runtime. Authentication methods are no exception: FastAPI provides most of them out of the box as security dependencies.
 
-Each of those tables will have several columns representing the attributes of the entity. If we consider posts, we could have a title, a publication date, and content. In those tables, there will be several rows, each one representing a single entity of this type; each post will have its own row.
+First, let’s learn how to retrieve an access token in an arbitrary header. For this, we can use the ApiKeyHeader dependency, as shown in the following example:
 
-One of the key points of relational databases is, as their name suggests, relationships. Each table can be in a relationship with others, with rows referring to other rows in other tables. In our example, a post could be related to the user who wrote it. In the same way, a comment could be linked to the post that it relates to.
+In this simple example, we hardcoded a token, API_TOKEN, and checked whether the token passed in the header was equal to this token, before authorizing the endpoint to be called. To do this, we used the APIKeyHeader security dependency, which is designed to retrieve a value from a header. It’s a class dependency that can be instantiated with arguments. In particular, it accepts the name argument, which holds the name of the header it’ll look for.
 
-The main motivation behind this is to avoid duplication. Indeed, it wouldn’t be very efficient to repeat the user’s name or email on each post. If it needs to be modified at some point, we would have to go through each post, which is error-prone and puts data consistency at risk. This is why we prefer to reference the user in the posts. So, how can we do this?
+Then, in our endpoint, we injected this dependency to get the token’s value. If it’s equal to our token constant, we proceed with the endpoint logic. Otherwise, we raise a 403 error.
 
-Usually, each row in a relational database has an identifier, called a primary key. This is unique in the table and allows you to uniquely identify this row. Therefore, it’s possible to use this key in another table to reference it. We call this a foreign key: the key is foreign in the sense that it refers to another table.
+Our example from the Path, router, and global dependencies section of Chapter 5, Dependency Injection in FastAPI, is not very different from this one. We are simply retrieving a value from an arbitrary header and making an equality check. So, why bother with a dedicated dependency? There are two reasons:
+First, the logic to check whether the header exists and retrieve its value is included in APIKeyHeader. When you reach the endpoint, you are sure that a token value was retrieved; otherwise, a 403 error will be thrown.
+The second, and probably most important, thing is that it’s detected by the OpenAPI schema and included in its interactive documentation. This means that endpoints using this dependency will display a lock icon, showing that it’s a protected endpoint. Furthermore, you’ll have access to an interface to input your token, as shown in the following screenshot. The token will then be automatically included in the requests you are making from the documentation:
 
-Figure 6.1 shows a representation of such a database schema using an entity-relationship diagram. Note that each table has its own primary key, named id. The Post table refers to a user, through the user_id foreign key. Similarly, the Comment table refers to both a post and a user through the user_id and post_id foreign keys:
+Of course, you can wrap the logic that checks the token value in its own dependency to reuse it across your endpoints, as shown in the following example:
 
-In an application, you’ll likely want to retrieve a post, along with the comments and the users associated with them. To do so, we can perform a join query, which will return all the relevant records based on the foreign keys. Relational databases are designed to perform such tasks efficiently; however, those operations can become expensive if the schema is more complex. This is why it’s important to carefully design a relational schema and its queries.
+These kinds of dependencies are very good candidates to be used as routers or global dependencies to protect whole sets of routes, as we saw in Chapter 5, Dependency Injection in FastAPI.
 
-## NoSQL databases
+This is a very basic example of adding authorization to your API. In this example, we don’t have any user management; we are only checking that a token corresponds to a constant value. While it could be useful for private microservices that are not intended to be called by end users, this approach should not be considered very secure.
 
-All database engines that are not relational fall back into the NoSQL category. This is a quite vague denomination that regroups different families of databases: key-value stores, such as Redis; graph databases, such as Neo4j; and document-oriented databases, such as MongoDB. That said, most of the time, when we talk about “NoSQL databases,” we are implicitly referring to document-oriented databases. They are the ones we’re interested in.
+First, make sure your API is always served using HTTPS to ensure your token is not exposed in the headers. Then, if it’s a private microservice, you should also consider not exposing it publicly on the internet and making sure only trusted servers can call it. Since you don’t need users to make requests to this service, it’s much safer than a simple token key that could be stolen.
 
-Document-oriented databases move away from the relational architecture and try to store all the information of a given object inside a single document. As such, performing a join query is much rarer and usually more difficult.
+Of course, most of the time, you’ll want to authenticate real users with their own individual access tokens with which they can access their own data. You have probably already used a service that implements this very typical pattern:
+First, you must register an account on this service, usually by providing your email address and a password.
+Next, you can log in to the service using the same email address and password. The service checks whether the email address exists and that the password is valid.
+In exchange, the service provides you with a session token that can be used on subsequent requests to authenticate yourself. This way, you don’t have to provide your email address and password on each request, which would be annoying and dangerous. Usually, such session tokens have a limited lifetime, which means you’ll have to log in again after some time. This mitigates any security risks if the session token is stolen.
 
-Those documents are stored in collections. Contrary to relational databases, documents in a collection might not have all of the same attributes: while tables in relational databases have a defined schema, collections accept any kind of document.
+In the next section, you’ll learn how to implement such a system.
 
-Figure 6.2 shows a representation of our previous blog example, which has been adapted into a document-oriented database structure. In this configuration, we have chosen to have a collection for users and another one for posts. However, notice that the comments are now part of a post, directly included as a list:
+# Storing a user and their password securely in a database
 
-To retrieve a post and all of its comments, you don’t need to perform a join query: all the data comes in one query. This was the main motivation behind the development of document-oriented databases: increase query performance by limiting the need to look at several collections. In particular, they proved to be useful for applications with huge data scales and less structured data, such as social networks.
+Storing a user entity in a database is no different from storing any other entity, and you can implement this in the same way as in Chapter 6, Databases and Asynchronous ORMs. The only thing you must be extremely cautious about is password storage. You must not store the password as plain text in your database. Why? If, unfortunately, a malicious person manages to get into your database, they’ll be able to get the passwords of all your users. Since many people use the same password multiple times, the security of their accounts on other applications and websites would be seriously compromised.
 
-## Which one should you choose?
+To avoid a disaster like this, we can apply cryptographic hash functions to the password. The goal of those functions is to transform the password string into a hash value. This is designed to make it near impossible to retrieve the original data from the hash. Hence, even if your database is compromised, the passwords are still safe.
 
-As we mentioned in the introduction to this section, your choice of database engine greatly depends on your application and needs. A detailed comparison between relational and document-oriented databases is beyond the scope of this book, but let’s look at some elements for you to think about.
+When users try to log in, we simply compute the hash of the password they input and compare it with the hash we have in our database. If they match, this means it’s the right password.
 
-Relational databases are very good for storing structured data with a lot of relationships between entities. Besides, they maintain data consistency at all costs, even in the event of errors or hardware failures. However, you’ll have to precisely define your schema and consider a migration system to update your schema if your needs evolve.
+Now, let’s learn how to implement such a system with FastAPI and SQLAlchemy ORM.
 
-On the other hand, document-oriented databases don’t require you to define a schema: they accept any document structure, so they can be convenient if your data is highly variable or if your project is not mature enough. The downside of this is that they are far less picky in terms of data consistency, which could result in data loss or inconsistencies.
+## Creating models
 
-For small and medium-sized applications, the choice doesn’t matter too much: both relational databases and document-oriented databases are very optimized and will deliver awesome performance at such scales.
+We start by creating the SQLAlchemy ORM model for a user, as shown in the following example:
 
-Next, we’ll show you how to work with these different kinds of databases using FastAPI. When we introduced asynchronous I/O in Chapter 2, Python Programming Specificities, we mentioned that it was important to carefully select the libraries you use to perform I/O operations. Of course, databases are particularly important in this context!
+To keep this example simple, we’re only considering the ID, email address, and password in our model. Note that we added a unique constraint to the email column to ensure we can’t have duplicate emails in our database.
 
-While working with classic non-async libraries is perfectly possible in FastAPI, you could miss out on one of the key aspects of the framework and might not reach the best performance it can offer. That’s why, in this chapter, we’ll only focus on async libraries.
+Next, we can implement the corresponding Pydantic schemas:
 
-# Communicating with a SQL database with SQLAlchemy ORM
+As you can see, there is a major difference between UserCreate and User: the former accepts the plain text password we’ll hash during registration, while the second will only keep the hashed password in the database. We also take care to not include hashed_password in UserRead, so the hash doesn’t appear in API responses. Even though hashed data should be indecipherable, it’s generally not advised to leak it.
 
-To begin, we’ll discuss how to work with a relational database using the SQLAlchemy library. SQLAlchemy has been around for years and is the most popular library in Python when you wish to work with SQL databases. Since version 1.4, it also natively supports async.
+## Hashing passwords
 
-The key thing to understand about this library is that it’s composed of two parts:
-SQLAlchemy Core, which provides all the fundamental features to read and write data to SQL databases
-SQLAlchemy ORM, which provides a powerful abstraction over SQL concepts
+Before we look at the registration endpoint, let’s implement some important utility functions for hashing passwords. Fortunately, libraries exist that provide the most secure and efficient algorithms for this task. Here, we’ll use passlib. You can install it along with argon2_cffi, which is one of the safest hash functions at the time of writing:
 
-While you can choose to only use SQLAlchemy Core, it’s generally more convenient to use ORM. The goal of ORM is to abstract away the SQL concepts of tables and columns so that you only have to deal with Python objects. The role of ORM is to map those objects to the tables and columns they belong to and generate the corresponding SQL queries automatically.
-The first step is to install this library:
+Now, we’ll just instantiate the passlib classes and wrap some of their functions to make our lives easier:
 
-Notice that we added two optional dependencies: asyncio and mypy. The first one ensures the tools for async support are installed.
+CryptContext is a very useful class since it allows us to work with different hash algorithms. If, one day, a better algorithm than argon2 emerges, we can just add it to our allowed schemas. New passwords will be hashed using the new algorithm, but existing passwords will still be recognized (and optionally upgraded to the new algorithm).
 
-The second one is a special plugin for mypy that provides special support for SQLAlchemy. ORM does a lot of magic things under the hood, which are hard for type checkers to understand. With this plugin, mypy learns to recognize those constructs.
+## Implementing registration routes
 
-As we said in the introduction, numerous SQL engines exist. You have probably heard of PostgreSQL and MySQL, which are among the most popular. Another interesting choice is SQLite, a tiny engine that stores all the data inside a single file on your computer, without the need for complex server software. It’s ideal for testing and experimenting. To allow SQLAlchemy to talk to those engines, you’ll need to install the corresponding driver. Here are the async drivers you’ll need to install, depending on your engine:
-PostgreSQL:
-(venv) $ pip install asyncpg
-MySQL:
-(venv) $ pip install aiomysql
-SQLite:
-(venv) $ pip install aiosqlite
+Now, we have all the elements to create a proper registration route. Once again, it’ll be very similar to what we saw earlier. The only thing we must remember is to hash the password before inserting it into our database.
+Let’s look at the implementation:
 
-For the rest of this section, we’ll work with SQLite databases. We’ll show you, step by step, how to set up a complete database interaction. Figure 6.4 shows the structure of the project:
+As you can see, we are calling get_password_hash on the input password before inserting the user into the database. Note that we are catching a possible exc.IntegrityError exception, which means we’re trying to insert an email that already exists.
 
-## Creating ORM models
+Also, notice that we took care to set response_model to UserRead. By doing this, we’re ensuring that hashed_password is not part of the output.
 
-First, you need to define your ORM models. Each one is a Python class whose attributes represent the columns of your table. The actual entities of your database will be instances of this class, giving you access to its data, just like any other object. Under the hood, the role of SQLAlchemy ORM is to link this Python object and the row in the database. Let’s take a look at the definition of our blog post model:
+Great! We now have a proper user model and users can create a new account with our API. The next step is to allow them to log in and give them an access token.
 
-The first step is to create a Base class that inherits from DeclarativeBase. All our models will inherit from this class. Internally, SQLAlchemy uses it to keep all the information about your database schema together. This is why you should create it only once in your whole project and always use the same one throughout.
+# Retrieving a user and generating an access token
 
-Next, we must define our Post class. Once again, notice how it inherits from Base. Inside this class, we can define each of our columns in the form of class properties. They are assigned thanks to the mapped_column function, which helps us define the type of the column and its related properties. For example, we define our id column as an integer primary key with auto-increment, which is quite common in a SQL database.
+After successful registration, the next step is being able to log in: the user will send their credentials and receive an authentication token to access the API. In this section, we’ll implement the endpoint that allows this. Basically, we’ll get the credentials from the request payload, retrieve the user with the given email, and verify their password. If the user exists and their password is valid, we’ll generate an access token and return it in the response.
 
-Note that we won’t go through all the types and options provided by SQLAlchemy. Just know that they closely follow the ones that are usually provided by SQL databases. You can check the complete list in the official documentation, as follows:
-You can find the list of types at https://docs.sqlalchemy.org/en/20/core/ type_basics.html#generic-camelcase-types
-You can find the list of mapped_column arguments at https://docs.sqlalchemy. org/en/20/orm/mapping_api.html#sqlalchemy.orm.mapped_column
+## Implementing a database access token
 
-Another interesting thing to notice here is that we added type hints to each property, which correspond to the Python type of our columns. This will greatly help us during development: for example, if we try to get the title property of a post object, the type checker will know it’s a string. For this to work, notice that we wrap each type with the Mapped class. This is a special class provided by SQLAlchemy so that the type checker can understand the underlying type of the data when we assign it a MappedColumn object.
+First, let’s think about the nature of this access token. It should be a data string that uniquely identifies a user that is impossible to forge by a malicious third party. In this example, we will take a simple but reliable approach: we’ll generate a random string and store it in a dedicated table in our database, with a foreign key referring to the user.
 
-This is how you declare models in SQLAlchemy 2.0 The way we’ll show you to declare models in this section is the newest way to do so, as introduced in SQLAlchemy 2.0.
-If you look at older tutorials or documentation on the web, you’ll probably come across a slightly different way where we assign properties to a Column object. While this older style still works in SQLAlchemy 2.0, it should be considered deprecated.
+This way, when an authenticated request arrives, we simply have to check whether it exists in the database and look for the corresponding user. The advantage of this approach is that tokens are centralized and can easily be invalidated if they are compromised; we only need to delete them from the database.
 
-We now have a model that will help us read and write post data to our database. However, as you’re now aware, with FastAPI, we’ll also need Pydantic models so that we can validate input data and output the right representation in our API. If you need a refresher about this, you can check Chapter 3, Developing a RESTful API with FastAPI.
+The first step is to implement the SQLAlchemy ORM model for this new entity:
 
-## Defining Pydantic models
+We define three columns:
+access_token: This is the string that will be passed in the requests to authenticate them. Notice that we defined the generate_token function as the default factory; it’s a simple function defined previously that generates a random secure passphrase. Under the hood, it relies on the standard secrets module.
+user_id: A foreign key referring to the users table that identifies the user corresponding to this token.
+expiration_date: The date and time when the access token will expire and won’t be valid anymore. It’s always a good idea to give access tokens an expiry date to mitigate the risk if they are stolen. Here, the get_expiration_date factory sets a default validity of 24 hours.
 
-As we said, if we want to correctly validate the data coming in and out of our FastAPI application, we’ll need Pydantic models. In an ORM context, they will help us go back and forth with the ORM model. That’s the key takeaway of this section: we’ll use Pydantic models to validate and serialize the data, but the database communication will be done with the ORM model.
+We also don’t forget to define the relationship so we can directly access the user entity from an access token object. Notice we set an eager loading strategy by default, so we always retrieve the user when querying for an access token. If you need the rationale behind this, check the Adding relationships section of Chapter 6, Databases and Asynchronous ORMs.
 
-To avoid confusion, we’ll now refer to Pydantic models as schemas. When we talk about models, we’ll be referring to the ORM model.
+We won’t need Pydantic schemas here, as access tokens will be created and serialized through specific methods.
 
-That’s why the definitions of those schemas are placed in the schemas.py module, which can be seen here:
+## Implementing a login endpoint
 
-The preceding code corresponds to the pattern we explained in Chapter 4, Managing Pydantic Data Models in FastAPI.
+Now, let’s think about the login endpoint. Its goal is to take credentials in the request payload, retrieve the corresponding user, check the password, and generate a new access token. Its implementation is quite straightforward, apart from one thing: the model that’s used to handle the request. You’ll see why thanks to the following example:
 
-There is a new thing, though: you probably noticed the Config subclass, which is defined in PostBase. It’s a way to add some configuration options to Pydantic schemas. Here, we set the orm_mode option to True. As its name suggests, it’s an option to make Pydantic work better with ORM. In a standard setting, Pydantic is designed to parse data from dictionaries: if it wants to parse the title property, it’ll use d["title"]. With ORM, however, we access the properties like an object – that is, by using dot notation (o.title). Enabling ORM mode allows Pydantic to use this style.
+As you can see, we retrieve the request data thanks to the OAuth2PasswordRequestForm module, which is provided by FastAPI in its security module. It expects several fields, especially username and password, in a form encoding rather than JSON.
 
-## Connecting to a database
+Why do we use this class? The main benefit of using this class is that it’s completely integrated into the OpenAPI schema. This means that the interactive documentation will be able to automatically detect it and present a proper authentication form behind the Authorize button, as shown in the following screenshot:
 
-Now that our model and schemas are ready, we have to set up the connection between our FastAPI app and the database engine. For this, we’ll create a database.py module where we’ll put the objects we need for this task:
+But that’s not all: it will be able to automatically retrieve the returned access token and set the proper authorization header in subsequent requests. The authentication process is handled transparently by the interactive documentation.
 
-Here, you can see that we have set our connection string inside the DATABASE_URL variable. Generally, it consists of the following:
-The database engine. Here, we use sqlite.
-Optionally, the driver, after a plus sign. Here, we set aiosqlite. In an async context, it’s necessary to specify the async driver we want to use. Otherwise, SQLAlchemy will fall back to a standard, synchronous driver.
-Optionally, the authentication information.
-The hostname of the database server. In the case of SQLite, we simply have to specify the path of the file that will store all the data.
+This class follows the OAuth2 protocol, which means you also have fields for the client ID and secret. We won’t learn how to implement the complete OAuth2 protocol here, but note that FastAPI provides all the tools needed to do so properly. For our project, we’ll just stick with a username and a password. Notice that, following the protocol, the field is named username, regardless of whether we are using an email address to identify the user. This isn’t a big deal; we just have to remember it while retrieving it.
 
-You can find an overview of this format in the official SQLAlchemy documentation at https:// docs.sqlalchemy.org/en/20/core/engines.html#database-urls.
+The rest of the path operation function is quite simple: first, we try to retrieve a user from this email and password. If no corresponding user is found, we raise a 401 error. Otherwise, we generate a new access token before returning it. Notice that the response structure also includes the token_type property. This allows the interactive documentation to automatically set the authorization headers.
 
-Then, we create an engine using the create_async_engine function and this URL. An engine is an object where SQLAlchemy will manage the connection with your database. At this point, it’s important to understand that no connection is being made: we are just declaring things.
+In the following example, we’ll look at the implementation of the authenticate and create_ access_token functions. We won’t go into too much detail here as they are quite simple:
 
-We then have a more cryptic line to define the async_session_maker variable. We won’t go too much into the details of the async_sessionmaker function. Just know that it returns a function so that we can generate sessions tied to our database engine.
+Notice that we defined a function called verify_password to check the validity of the password. Once again, it uses passlib under the hood, which takes care of comparing the hashes of the passwords.
 
-What is a session? It’s a concept defined by ORM. A session will establish an actual connection with the database and represent a zone where it’ll store all the objects you’ve read from the database and all the ones you’ve defined that’ll be written to the database. It’s the proxy between the ORM concepts and the fundamental SQL queries.
+Password hash upgrade To keep this example simple, we implemented a simple password comparison. Usually, it’s good practice to implement a mechanism to upgrade the password hash at this stage. Imagine that a new and more robust hash algorithm has been introduced. We can take this opportunity to hash the password with this new algorithm and store it in a database. passlib includes a function for verifying and upgrading the hash in one operation. You can learn more about this in the following documentation: https://passlib.readthedocs.io/en/stable/ narr/context-tutorial.html#integrating-hash-migration.
 
-When building HTTP servers, we usually open a fresh session when the request starts and close it when we answered the request. Therefore, each HTTP request represents a unit of work with the database. That’s why we must define a FastAPI dependency whose role is to yield us a fresh session:
+We’ve almost achieved our goal! Users can now log in and get a new access token. All we need to do now is implement a dependency to retrieve the Authorization header and verify this token!
 
-Having it as a dependency will greatly help us when implementing our path operation functions.
+## Securing endpoints with access tokens
 
-So far, we haven’t had the opportunity to talk about the with syntax. In Python, this is what’s called a context manager. Simply put, it’s a convenient syntax for objects that need to execute setup logic when they are used and teardown logic when they are not needed anymore. When you enter the with block, the object automatically executes the setup logic. When you exit the block, it executes its teardown logic. You can read more about context managers in the Python documentation: https://docs. python.org/3/reference/datamodel.html#with-statement-context-managers.
+Previously, we learned how to implement a simple dependency to protect an endpoint with a header. Here, we’ll also retrieve a token from a request header, but then, we’ll have to check the database to see whether it’s valid. If it is, we’ll return the corresponding user.
 
-In our case, async_session_maker works as a context manager. Among other things, it takes care of opening a connection to the database.
+Let’s see what our dependency looks like:
 
-Notice that we define a generator here by using yield. This is important because it ensures that the session remains open until the end of the request. If we were to use a simple return statement, the context manager would close immediately. With yield, we make sure we only get out of the context manager when the request and our endpoint logic have been fully handled by FastAPI.
+The first thing to notice is that we used the OAuth2PasswordBearer dependency from FastAPI. It goes hand in hand with OAuth2PasswordRequestForm, which we saw in the previous section. It not only checks for the access token in the Authorization header, but it also informs the OpenAPI schema that the endpoint to get a fresh token is /token. This is the purpose of the tokenUrl argument. This is how the automatic documentation can automatically call the access token endpoint in the login form we saw earlier.
 
-Using a dependency to retrieve a database instance You might be wondering why we don’t just call async_session_maker directly in our path operation functions rather than using a dependency. This would work, but it would make our life very hard when we try to implement unit tests. Indeed, it would be very difficult to replace this instance with a mock or test database. With a dependency, FastAPI makes it very easy to swap it with another function. We’ll see this in more detail in Chapter 9, Testing an API Asynchronously with pytest and HTTPX.
+Then we performed a database query with SQLAlchemy. We applied two clauses: one to match the token we got and another to ensure that the expiration date is in the future. If no corresponding record is found in the database, we raise a 401 error. Otherwise, we return the user related to the access token.
 
-The last thing we must define in this module is the create_all_tables function. Its goal is to create the table’s schema inside our database. If we don’t do that, our database will be empty and we wouldn’t be able to save or retrieve data. Creating a schema like this is a simple approach that’s only suitable for simple examples and experiments. In a real-world application, you should have a proper migration system whose role is to make sure your database schema is in sync. We’ll learn how to set one up for SQLAlchemy later in this chapter.
+And that’s it! Our whole authentication system is complete. Now, we can protect our endpoints simply by injecting this dependency. We even have access to the user data so that we can tailor the response according to the current user. You can see this in the following example:
 
-To make sure our schema is created when our application starts, we must call this function the lifespan handler of FastAPI. This is useful to execute some logic when the application is started and stopped. That's what we'll do in our app.py module:
+With that, you’ve learned how to implement a whole registration and authentication system from scratch. We voluntarily kept it simple to focus on the most important points, but it’s a good base on which you can expand.
 
-## Creating objects
+The patterns we showed here are good candidates for a REST API, which is called externally by other client programs. However, you may wish to call your API from a very common piece of software: the browser. In this case, there are some additional security considerations to be taken care of.
 
-Let’s start by inserting new objects inside our database. The main challenge is to take a Pydantic schema as input, transform it into a SQLAlchemy model, and save it in the database. Let’s review this process, which is shown in the following example:
+# Configuring CORS and protecting against CSRF attacks
 
-Here, we have our POST endpoint, which accepts our PostCreate schema. Notice that we inject a fresh SQLAlchemy session using our get_async_session dependency. The core logic consists of two operations.
+Nowadays, numerous pieces of software are designed to be used in a browser through an interface built with HTML, CSS, and JavaScript. Traditionally, web servers were responsible for handling browser requests and returning an HTML response to be shown to the user. This is a common use case for frameworks such as Django.
 
-First, we transform post_create into a full Post model object. For this, we can simply call the dict method of Pydantic and unpack it with ** to directly assign the properties. At this point, the post is not in the database yet: we need to tell the session about it.
+For a few years now, there has been a shift underway in that pattern. With the emergence of JavaScript frameworks such as Angular, React, and Vue, we tend to have a clear separation between the frontend, a highly interactive user interface powered by JavaScript, and the backend. Thus, those backends are now only responsible for data storage and retrieving and executing business logic. This is a task that REST APIs are very good at! From the JavaScript code, the user interface can then just spawn requests to your API and handle the result to present it.
 
-The first step is to add it in the session, through the add method. Now, the post is in the session memory, but not in the database yet. By calling the commit method, we tell the session to generate the appropriate SQL queries and execute them on the database. As we might expect, we see that we need to await this method: we perform an I/O operation on the database, so it’s an async operation.
+However, we must still handle authentication: we want our user to be able to log in to the frontend application and make authenticated requests to the API. While an Authorization header, as we’ve seen so far, could work, there is a better way to handle authentication when working in browsers: cookies!
 
-Finally, we can just return the post object. You may be surprised that we directly return a SQLAlchemy ORM object rather than a Pydantic schema. How could FastAPI correctly serialize it with the properties we specified? If you pay attention, you’ll see that we set the response_model property in the path operation decorator. As you may recall from the Response model section of Chapter 3, Developing a RESTful API with FastAPI, you’ll understand what is going on: FastAPI will automatically take care of transforming the ORM object into the specified schema. And that’s exactly why we need to enable orm_mode of Pydantic, as shown in the previous section!
+Cookies are designed to store user information in browser memory and are sent automatically in every request made to your server. They have been supported for years, and browsers integrate lots of mechanisms to make them safe and reliable.
 
-From this, you can see that the implementation is quite straightforward. Now, let’s retrieve this data!
+However, this comes with some security challenges. Websites are very common targets for hackers and lots of attacks have emerged over the years.
 
-## Getting and filtering objects
+One of the most typical is Cross-Site Request Forgery (CSRF). In this scenario, an attacker on another website tries to trick a user who is currently authenticated with your application to perform a request on your server. Since browsers tend to send cookies with every request, your server wouldn’t be able to tell that the request was actually forged. Since it’s the users themselves who unintentionally launched the malicious request, these kinds of attacks don’t aim to steal data but to execute operations that change the state of the application, such as changing an email address or making a money transfer.
 
-Usually, a REST API provides two types of endpoints to read data: one to list objects and one to get a specific object. This is exactly what we’ll review next!
+Obviously, we should be prepared for these kinds of risks and have measures in place to mitigate them.
 
-In the following example, you can see how we implemented the endpoint to list objects:
+## Understanding CORS and configuring it in FastAPI
 
-The operation is performed in two steps. First, we build a query. The select function of SQLAlchemy allows us to begin defining a query. Conveniently, we can directly pass it the model class: it’ll automatically understand which table we are talking about. From there, we can apply various methods and filters, which are a mirror of what we could expect in pure SQL. Here, we’re able to apply our pagination parameters through offset and limit.
+When you have a clearly separated frontend application and a REST API backend, they are not typically served from the same subdomain. For example, the frontend may be available from www. myapplication.com, while the REST API is available from api.myapplication.com. As we mentioned in the introduction, we would like to make requests to this API from our frontend application in JavaScript.
 
-Then, we execute this query using the execute method of a fresh session object (which was, once again, injected by our dependency). Since we read data from the database, it’s an async operation.
+However, browsers don’t allow cross-origin resource sharing (CORS) HTTP requests, meaning domain A can’t make requests to domain B. This follows what is called a same-origin policy. This is a good thing in general as it’s the first barrier to preventing CSRF attacks.
 
-From this, we get a result object. This object is an instance of the Result class of SQLAlchemy. It’s not directly our list of posts, but rather a set representing the results of the SQL query. That’s why we need to call scalars and all. The first one will make sure we get actual Post objects, while the second will return them as a sequence.
+To experience this behavior, we’ll run a simple example. In our example repository, the chapter07/ cors folder contains a FastAPI app called app_without_cors.py and a simple HTML file called index.html that contains some JavaScript for performing HTTP requests.
 
-Once again, we can directly return those SQLAlchemy ORM objects: FastAPI will transform them into the correct schema thanks to the response_model setting.
+First, let’s run the FastAPI application using the usual uvicorn command:
+This will launch the FastAPI application on port 8000 by default. On another terminal, we’ll serve the HTML file using the built-in Python HTTP server. It’s a simple server, but it’s ideal for quickly serving static files. We can launch it on port 9000 thanks to the following command:
 
-Now, let’s see how we can retrieve a single post by ID:
+Starting several terminals On Linux and macOS, you should be able to simply start a new Terminal by creating a new window or tab. On Windows and WSL, you can also have several tabs if you’re using the Windows Terminal application: https://apps.microsoft.com/store/detail/ windows-terminal/9N0DX20HK701.
+Otherwise, you can simply click on the Ubuntu shortcut in your Start menu to start another terminal.
 
-This is a simple GET endpoint that expects the ID of the post in the path parameter. The implementation is very light: we just return the post. Most of the logic is in the get_post_or_404 dependency, which we’ll reuse often in our application. Here is its implementation:
+We now have two running servers – one on localhost:8000 and one on localhost:9000. Strictly speaking, since they are on different ports, they are of different origins; so, it’s a good setup to try out cross-origin HTTP requests.
 
-As you can see, it’s quite similar to what we’ve seen for the list endpoint. We also start by building a select query, but this time, we add a where clause so that we can retrieve only the post matching the desired ID. The clause itself might look strange.
+In your browser, go to http://localhost:9000. You’ll see the simple application implemented in index.html, as shown in the following screenshot:
 
-First, we must set the actual column we want to compare. Indeed, when you access the properties of the model class directly, such as Post.id, SQLAlchemy automatically understands that you are referring to the column.
+There are two buttons that initiate GET and POST requests to our FastAPI application on port 8000. If you click on either of those, you’ll get a message in the error area stating Failed to fetch. If you look at the browser console in the development tools section, you’ll see that the request failed because there isn’t a CORS policy, as shown in the following screenshot. That’s what we wanted – by default, browsers block cross-origin HTTP requests:
 
-Then, we use the equality operator to compare the column with our actual id variable. It looks like a standard comparison that would result in a Boolean, not a SQL statement! In a general Python context, it would. However, SQLAlchemy developers have done something clever here: they overloaded the standard operators so that they produce SQL expressions instead of comparing objects. This is exactly what we saw in the Magic methods section of Chapter 2, Python Programming Specificities.
+However, if you look at the terminal running the FastAPI application, you’ll see an output similar to the following:
 
-Now, we can simply execute the query and call scalar_one_or_none on the result set. It’s a convenient shortcut that tells SQLAlchemy to return a single object if it exists, or None otherwise.
+Clearly, both the GET and POST requests have been received and processed: we even returned a 200 status. So, what does this mean? In this case, the browser does send the request to the server. The lack of a CORS policy only forbids it to read the response; the request is still executed.
 
-If the result is None, we can raise a 404 error: no post is matching this ID. Otherwise, we can simply return the post.
+This is the case for requests that the browser considers simple requests. In essence, simple requests are those using the GET, POST, or HEAD methods that don’t set custom headers or unusual content types. You can learn more about simple requests and their conditions by going to the following MDN page about CORS: https://developer.mozilla.org/en-US/docs/Web/HTTP/ CORS#simple_requests.
 
-## Updating and deleting objects
+This means that, for simple requests, the same-origin policy is not enough to protect us against CSRF attacks.
 
-We’ll finish by showing you how to update and delete existing objects. You’ll see it’s just a matter of manipulating the ORM object and calling the right method on session.
+You may have noticed that our simple web application has a toggle for Enable JSON content-type. Enable this and perform the GET and POST requests again. On your FastAPI terminal, you should have an output similar to the following:
 
-Check out the following code and review the implementation of the update endpoint:
+As you can see, our server received two strange requests with the OPTIONS method. This is what we call preflight requests in the context of CORS policies. Those requests are initiated by the browser before it performs the actual request when it doesn’t consider it as a simple request. Here, we added the Content-Type header with a value of application/json, which is against the conditions of simple requests.
 
-Here, the main point of attention is that we’ll operate directly on the post we want to modify. This is one of the key aspects when working with ORM: entities are objects that can be modified as you wish. When you are happy with the data, you can persist it in the database. This is exactly what we are doing here: we get a fresh representation of our post thanks to get_post_or_404. Then, we transform the post_update schema into a dictionary, and we iterate over the properties to set them on our ORM object. Finally, we can save it in the session and commit it to the database, as we did for creation.
+By performing this preflight request, the browser expects the server to provide information about what it is and isn’t allowed to do in terms of cross-origin HTTP requests. Since we’ve not implemented anything here, our server can’t provide a response to this preflight request. Hence, the browser stops there and doesn’t proceed with the actual request.
 
-The same concept is applied when you wish to delete an object: when you have an instance, you can pass it to the delete method of session so that it can schedule it for removal. You can view this in action in the following example:
+And that’s basically CORS: the server answers preflight queries with a set of HTTP headers that provide information to the browser about whether it’s allowed to make the request or not. In that sense, CORS doesn’t make your application more secure, it’s quite the contrary: it allows the relaxation of some rules so that a frontend application can make requests to a backend residing on another domain. That’s why it’s crucial to configure CORS properly, so it doesn’t expose you to dangerous attacks.
 
-Throughout these examples, you’ve seen that we always call commit after a write operation: your changes must be written in the database. Otherwise, they’ll just stay in the session memory and be lost.
+Fortunately, it’s fairly easy to do this with FastAPI. All we need to do is import and add the CORSMiddleware class provided by Starlette. You can see what this looks like in the following example:
 
-## Adding relationships
+A middleware is a special class that adds global logic to an Asynchronous Server Gateway Interface (ASGI) application performing things before the request is handled by your path operation functions, and also after to possibly alter the response. FastAPI provides the add_middleware method for wiring such middleware into your application.
 
-As we mentioned at the beginning of this chapter, relational databases are all about data and its relationships. Quite often, you’ll need to create entities that are linked to others. For example, in a blog application, comments are linked to the post they relate to. In this section, we’ll examine how you can set up such relationships with SQLAlchemy ORM.
+Here, CORSMiddleware will catch preflight requests sent by the browser and return the appropriate response with the CORS headers corresponding to your configuration. You can see that there are options to finely tune the CORS policy to your needs.
 
-First, we need to define a new model for comments. This new model must be placed above Post in the code. We’ll explain why this matters later. You can view its definition in the following example:
+The most important one is probably allow_origins, which is the list of origins allowed to make requests to your API. Since our HTML application is served from http://localhost:9000, this is what we put here in this argument. If the browser tries to make requests from any other origin, it will stop as it’s not authorized to do so by CORS headers.
 
-The important point here is the post_id column, which is of the ForeignKey type. This is a special type that tells SQLAlchemy to automatically handle the type of the column and the associated constraint. We simply have to give the table and column names it refers to.
+The other interesting argument is allow_credentials. By default, browsers don’t send cookies for cross-origin HTTP requests. If we wish to make authenticated requests to our API, we need to allow this via this option.
 
-But that’s only the SQL part of the definition. We now need to tell ORM that our Comment object has a relationship with a Post object. This is the purpose of the post property, which is assigned to the relationship function. It’s a special function exposed by SQLAlchemy ORM to define how models relate to each other. It won’t create a new column in the SQL definition – that’s the role of the ForeignKey column – but it’ll allow us to directly get the Post object linked to a comment by using comment.post. You can also see that we define the back_populates argument. It allows us to do the opposite operation – that is, get the list of comments from a post. The name of this option determines the name of the property we’ll use to access the comment. Here, this is post.comments.
+We can also finely tune the allowed methods and headers that are sent in the request. You can find a complete list of arguments for this middleware in the official Starlette documentation: https:// www.starlette.io/middleware/#corsmiddleware.
 
-Forward reference type hint If you look at the type hint of the post property, you will see that we correctly set it to the Post class. However, we put it inside quotes: post: "Post" = ….
-This is what is called a forward reference. In some cases, the type hint we want is not yet defined. That’s our case here since Post is defined after Comment. If we forget the quotes, Python will complain because we are trying to access something that doesn’t exist yet. To solve this, we can put it inside quotes. Type checkers are smart enough to understand what you are referring to.
+Let’s quickly talk about the max_age parameter. This parameter allows you to control the cache duration of the CORS responses. Having to perform a preflight request before the actual one is an expensive operation. To improve performance, browsers can cache the response so that they don’t have to do this every time. Here, we are disabling caching with a value of -1 to make sure you see the behavior of the browser in this example. In your projects, you can remove this argument so that you have a proper cache value.
 
-Now, if you look at the Post model, as follows, you’ll see that we added one thing:
+Now, let’s see how our web application behaves with this CORS-enabled application. Stop the previous FastAPI app and run this one using the usual command:
 
-We also defined the mirror relationship, taking care of naming with the same name we chose for back_populates. This time, we also set the cascade argument, which allows us to define the behavior of ORM when we delete a post: should we implicitly delete the comments as well? Or should we keep them as orphans? In this case, we chose to delete them. Note that it’s not the same thing as the CASCADE DELETE construct of SQL: it has the same effect, but it will be handled by ORM in the Python code, not by the SQL database.
+Now, if you try to perform the requests from the HTML application, you should see a working response in each case, both with and without a JSON content type. If you look at the FastAPI terminal, you should see an output similar to the following:
 
-There are a lot of options regarding relationships, all of which you can find in the official documentation: https://docs.sqlalchemy.org/en/20/orm/relationship_api. html#sqlalchemy.orm.relationship.
+The two first requests are the “simple requests,” which don’t need a preflight request according to the browser rules. Then, we can see the requests that were performed with the JSON content type enabled. Before the GET and POST requests, an OPTIONS request was performed: the preflight request!
 
-Once again, adding this comments property doesn’t change the SQL definition: it’s just a way to wire things for ORM, on the Python side.
+Thanks to this configuration, you can now make cross-origin HTTP requests between your frontend application and your backend living on another origin. Once again, it’s not something that’ll improve the security of your application, but it allows you to make this specific scenario work while keeping it secure from the rest of the web.
 
-Now, we can define the Pydantic schemas for our comment entity. They are quite straightforward, so we won’t go into the details. However, notice how we added the comments property to the PostRead schema:
+Even if those policies can be a first layer of defense against CSRF, this doesn’t mitigate the risk completely. Indeed, the “simple requests” are still an issue: POST requests are allowed and, even if the response cannot be read, it’s actually executed on the server.
 
-Indeed, in a REST API, there are some cases where it makes sense to automatically retrieve the associated objects of an entity. Here, it’ll be convenient to get the comments of a post in a single request. This schema will allow us to serialize the comments, along with the post data.
+Now, let’s learn how to implement a pattern so that we’re completely safe from such attacks: the double-submit cookie.
 
-Now, we’ll implement an endpoint to create a new comment. This is shown in the following example:
+## Implementing double-submit cookies to prevent CSRF attacks
 
-This endpoint is defined, so we need to set the post ID directly in the path. It allows us to reuse the get_post_or_404 dependency and automatically have a 404 error occur if we try to add a comment to a non-existing post.
+As we mentioned previously, when relying on cookies to store user credentials, we are exposed to CSRF attacks since browsers will automatically send the cookies to your server. This is especially true for what the browser considers “simple requests,” which don’t enforce the CORS policy before the request is executed. There are also other attack vectors involving traditional HTML form submissions or even the src attribute of the image tag.
 
-Other than that, it’s very similar to what we saw in the Creating objects section of this chapter. The only point of attention here is that we manually set the post property on this new comment object. Thanks to the relationship definition, we can directly assign the post object, and ORM will automatically set the right value in the post_id column.
+For all these reasons, we need to have another layer of security to mitigate this risk. Once again, this is only necessary if you plan to use your API from a browser application and use cookies for authentication.
 
-Earlier, we mentioned that we wanted to retrieve a post and its comments at the same time. To do this, we’ll have to tweak our queries a bit when getting posts. The following sample shows what we did for the get_post_or_404 function, but the same goes for the list endpoint:
+To help you understand this, we’ve built a new example application that uses a cookie to store the user access token. It’s very similar to the one we saw at the beginning of this chapter; we only modified it so that it looks for the access token in a cookie rather than in a header.
 
-As you can see, we added a call to options with a selectinload construct. This is a way to tell ORM to automatically retrieve the associated comments of the post when performing the query. If we don’t do this, we’ll get an error. Why? Because of the async nature of our queries. But let’s start from the beginning.
+To make this example work, you’ll have to install the starlette-csrf library. We’ll explain what it does a bit later in this section. For now, just run the following command:
 
-In a classic synchronous ORM context, you can do this:
+In the following example, you can see the login endpoint that sets a cookie with the access token value:
 
-If comments was not loaded in the first request, synchronous ORM will implicitly perform a new query on the SQL database. It’s invisible to the user, but an I/O operation is performed. This is called lazy loading, and it’s the default behavior for relationships in SQLAlchemy.
+Notice that we used the Secure and HttpOnly flags for the resulting cookie. This ensures that it’s sent only over HTTPS and that its value can’t be read from JavaScript, respectively. While this is not enough to prevent every kind of attack, it’s crucial for such sensitive information.
 
-However, in an async context, I/O operations can’t be done implicitly: we have to await them. This is why you will get an error if you forget to explicitly load the relationship into the first query. When Pydantic tries to serialize the PostRead schema, it’ll try to reach post.comments, but SQLAlchemy can’t perform this implicit query.
+Besides that, we also set the SameSite flag to lax. It’s a quite recent flag that allows us to control how the cookie is sent in a cross-origin context. lax is the default value in most browsers and allows the cookie to be sent to subdomains of the cookie domain but prevents it for other sites. In a sense, it’s designed to be the standard, built-in protection against CSRF. However, other CSRF mitigation techniques, such as the one we’ll implement here, are still needed currently. Indeed, older browsers that are not compatible with the SameSite flag are still vulnerable.
 
-So, when working with async, you need to perform eager loading on the relationships you want to access directly from the ORM object. Admittedly, this is way less convenient than its sync counterpart. However, it has a massive advantage: you finely control which queries are made. Indeed, with a synchronous ORM, it’s quite usual to have bad performance on an endpoint because the code performs dozens of implicit queries. With an asynchronous ORM, you can make sure you load everything in a single or few queries. It’s a trade-off that can pay in the long run.
+Now, when checking for the authenticated user, we’ll just have to retrieve the token from the cookie that was sent in the request. Once again, FastAPI provides a security dependency to help with this, called APIKeyCookie. You can see it in the following example:
 
-Eager loading can be configured on the relationship If you’re sure that you’ll always need to load the related objects of an entity, regardless of the context, you can define the eager loading strategy directly on the relationship function. This way, you won’t need to set it on each query. You can read more about this in the official documentation: https://docs.sqlalchemy.org/en/20/orm/relationship_ api.html#sqlalchemy.orm.relationship.params.lazy.
+And that’s basically it! The rest of the code remains the same. Now, let’s implement an endpoint that allows us to update the email address of the authenticated user. You can see this in the following example:
 
-Essentially, that’s it for working with relationships with SQLAlchemy ORM. You’ve seen that the key thing is to correctly define the relationship so that ORM can understand how objects are linked together.
+The implementation is not very surprising and follows what we’ve seen so far. However, it exposes us to a CSRF threat. As you can see, it uses the POST method. If we make a request in the browser to this endpoint without any special header, it will consider it as a simple request and execute it. Therefore, an attacker could change the email of a currently authenticated user, which is a major threat.
 
-## Setting up a database migration system with Alembic
+This is exactly why we need CSRF protection here. In the context of a REST API, the most straightforward technique is the double-submit cookie pattern. Here is how it works:
+1. The user makes a first request with a method that’s considered safe. Typically, this is a GET request.
+2.
+In response, it receives a cookie containing a secret random value – that is, the CSRF token.
+3. When making an unsafe request, such as POST, the user will read the CSRF token in the cookies and put the exact same value in a header. Since the browser also sends the cookies it has in memory, the request will contain the token both in the cookie and the header. That’s why it’s called double submit.
+4. Before processing the request, the server will compare the CSRF token provided in the header with the one present in the cookie. If they match, it will proceed to process the request. Otherwise, it’ll throw an error.
 
-When developing an application, you’ll likely make changes to your database schema to add new tables, add new columns, or modify existing ones. Of course, if your application is already in production, you don’t want to erase all your data to recreate the schema from scratch: you want it to be migrated to the new schema. Tools for this task have been developed, and in this section, we’ll learn how to set up Alembic, from the creators of SQLAlchemy. Let’s install this library:
-(venv) $ pip install alembic
+This is safe for two reasons:
+An attacker targeting a third-party website can’t read the cookies for a domain they don’t own. Thus, they have no way of retrieving the CSRF token value.
+Adding a custom header is against the conditions of “simple requests.” Hence, the browser will have to make a preflight request before sending the request, enforcing the CORS policy.
 
-Once you’ve done this, you’ll have access to the alembic command to manage this migration system. When starting a new project, the first thing you must do is initialize the migration environment, which includes a set of files and directories where Alembic will store its configuration and migration files. At the root of your project, run the following command:
-(venv) $ alembic init alembic
+This is a widely used pattern that works well to prevent such risks. This is why we installed starlette- csrf at the beginning of this section: it provides a piece of middleware for implementing it.
+We can use it just like any other middleware, as shown in the following example:
 
-This will create a directory, named alembic, at the root of your project. You can view the result of this command in the example repository shown in Figure 6.4:
+We set several important arguments here. First, we have the secret, which should be a strong passphrase that’s used to sign the CSRF token. Then, we have sensitive_cookies, which is a set of cookie names that should trigger the CSRF protection. If no cookie is present or if the provided ones are not critical, we can bypass the CSRF check. It’s also useful if you have other authentication methods available that don’t rely on cookies, such as Authorization headers, which are not vulnerable to CSRF. Finally, setting a cookie domain will allow you to retrieve the cookie containing the CSRF token, even if you are on a different subdomain; this is necessary in a cross-origin situation.
 
-This folder will contain all the configurations for your migrations and your migration scripts themselves. It should be committed along with your code so that you have a record of the versions of those files.
+That’s all you need to have the necessary protection ready. To ease the process of getting a fresh CSRF token, we implemented a minimal GET endpoint called /csrf. Its sole purpose is to provide us with a simple way to set the CSRF token cookie. We can call it directly when we load our frontend application.
 
-Additionally, note that it created an alembic.ini file, which contains all the configuration options of Alembic. We’ll review one important setting in this file: sqlalchemy.url. This can be seen in the following code:
+Now, let’s try it out in our situation. As we did in the previous section, we’ll run the FastAPI application and the simple HTML application on two different ports. To do this, just run the following commands:
 
-Predictably, this is the connection string of your database that will receive the migration queries. It follows the same convention that we saw earlier. Here, we set our SQLite database. However, note that we don’t set the aiosqlite driver: Alembic will only work with synchronous drivers. It’s not a big deal since it’ll only run in dedicated scripts to perform migrations.
+This will run the FastAPI application on port 8000. Now, run the following command:
 
-Next, we’ll focus on the env.py file. This is a Python script that contains all the logic executed by Alembic to initialize the migration engine and execute the migrations. Being a Python script, it allows us to finely customize the execution of Alembic. For the time being, we’ll keep the default one, except for one thing: we’ll import our Base object. You can view this in the following example:
+The frontend application is now live on http://localhost:9000. Open it in your browser. You should see an interface similar to the following:
 
-By default, the file defines a variable named target_metadata, which is set to None. Here, we changed it so that it refers to the Base.metadata object we imported from our models module. But why do we do that? Well, recall that Base is a SQLAlchemy object that contains all the information about your database schema. By providing it to Alembic, the migration system will be able to automatically generate the migration scripts just by looking at your schema! This way, you won’t have to write them from scratch.
+Here, we’ve added forms to interact with our API endpoints: register, log in get authenticated user, and update the endpoints. If you try them out, they should work without any issue. If you have a look at the requests that were sent in the Network tab of the development tools section, you’ll see that the CSRF token is present in the cookies and in a header called x-csrftoken.
 
-Once you have made changes to your database schema, you can run the following command to generate a new migration script:
-(venv) $ alembic revision --autogenerate -m "Initial migration"
+At the top, there is a toggle to prevent the application from sending the CSRF token in the header. If you disable it, you’ll see that all POST operations will result in an error.
 
-This will create a new script in the versions directory with the commands reflecting your schema changes. This file defines two functions: upgrade and downgrade. You can view upgrade in the following snippet:
-
-This function is executed when we apply the migration. It describes the required operations to create our posts and comments table, with all of their columns and constraints.
-
-Now, let’s examine the other function in this file, downgrade:
-
-This function describes the operations to roll back the migration so that the databases go back to their previous states. This is very important because if something goes wrong during the migration, or if you need to revert to an older version of your application, you’ll be able to do so without breaking your data.
-
-Autogeneration doesn’t detect everything Bear in mind that, even though autogeneration is very helpful, it’s not always accurate, and sometimes, it’s not able to detect ambiguous changes. For example, if you rename a column, it will delete the old one and create another. As a result, the data for this column will be lost! This is why you should always carefully review the migration scripts and make the required changes for edge cases like this.
-
-Finally, you can apply the migrations to your database using the following command:
-(venv) $ alembic upgrade head
-
-This will run all the migrations that have not yet been applied to your database until the latest. It’s interesting to know that, in the process, Alembic creates a table in your database so that it can remember all the migrations it has applied: this is how it detects which scripts to run.
-
-Generally speaking, you should be extremely careful when you run such commands on your database, especially on a production one. Very bad things can happen if you make a mistake, and you can lose precious data. You should always test your migrations in a test environment and have fresh and working backups before running them on your production database.
-
-This was a very quick introduction to Alembic and its powerful migration system. We strongly encourage you to go through its documentation to understand all of its mechanisms, especially regarding migration script operations. Please refer to https://alembic.sqlalchemy.org/ en/latest/index.html.
-
-That’s it for the SQLAlchemy part of this chapter! It’s a complex but powerful library for working with SQL databases. We’ll now leave the world of relational databases to explore how we can work with a document-oriented database, MongoDB.
-
-# Communicating with a MongoDB database using Motor
-
-As we mentioned at the beginning of this chapter, working with a document-oriented database, such as MongoDB, is quite different from a relational database. First and foremost, you don’t need to configure a schema upfront: it follows the structure of the data that you insert into it. In the case of FastAPI, it makes our life slightly easier since we only have to work with Pydantic models. However, there are some subtleties around the document identifiers that we need to take into account. We’ll review this next.
-
-To begin, we’ll install Motor, which is a library that is used to communicate asynchronously with MongoDB and is officially supported by the MongoDB organization. Run the following command:
-(venv) $ pip install motor
-Once you’ve done this, we can start working!
-
-## Creating models that are compatible with MongoDB ID
-
-As we mentioned in the introduction to this section, there are some difficulties with the identifiers that MongoDB uses to store documents. Indeed, by default, MongoDB assigns every document an _id property that acts as a unique identifier in a collection. This causes two issues:
-In a Pydantic model, if a property starts with an underscore, it’s considered to be private and thus, is not used as a data field for our model.
-_id is encoded as a binary object, called ObjectId, instead of a simple integer or string. It’s usually represented in the form of a string such as 608d1ee317c3f035100873dc. This type of object is not supported out of the box by Pydantic or FastAPI.
-
-This is why we’ll need some boilerplate code to ensure those identifiers work with Pydantic and FastAPI. To begin, in the following example, we have created a MongoBaseModel base class that takes care of defining the id field:
-
-First, we need to define an id field, which is of the PyObjectId type. This is a custom type that was defined in the preceding code. We won’t go into the details of its implementation but just know that it’s a class that makes ObjectId a compatible type for Pydantic. We define this same class as a default factory for this field. Interestingly, this kind of identifier allows us to generate them on the client side, contrary to traditional auto-incremented integers of relational databases, which could be useful in some cases.
-
-The most interesting argument is alias. It’s a Pydantic option that allows us to change the name of the field during serialization. In this example, when we call the dict method on an instance of MongoBaseModel, the identifier will be set on the _id key, which is the name expected by MongoDB. That solves the first issue.
-
-Then, we add the Config subclass and set the json_encoders option. By default, Pydantic is completely unaware of our PyObjectId type, so it won’t be able to correctly serialize it to JSON. This option allows us to map custom types with a function that will be called to serialize them. Here, we simply transform it into a string (this works because ObjectId implements the __str__ magic method). That solves the second issue for Pydantic.
-
-Our base model for Pydantic is complete! We can now use it as a base class instead of BaseModel for our actual data models. Notice, however, that the PostPartialUpdate doesn’t inherit from it. Indeed, we don’t want the id field in this model; otherwise, a PATCH request might be able to replace the ID of the document, which could lead to weird issues.
-
-## Connecting to a database
-
-Now that our models are ready, we can set up the connection with a MongoDB server. This is quite easy and only involves a class instantiation, as shown in the database.py module:
-
-Here, you can see that AsyncIOMotorClient simply expects a connection string to your database. Generally, it consists of the scheme, followed by authentication information, and the hostname of the database server. You can find an overview of this format in the official MongoDB documentation at https://docs.mongodb.com/manual/reference/connection-string/.
-
-However, be careful. Contrary to the libraries we’ve discussed so far, the client that’s instantiated here is not bound to any database – that is, it’s only a connection to a whole server. That’s why we need the second line: by accessing the chapter06_mongo key, we get a database instance. It’s worth noting that MongoDB doesn’t require you to create the database upfront: it’ll create it automatically if it doesn’t exist.
-
-Then, we create a simple function to return this database instance. We’ll use this function as a dependency to retrieve this instance in our path operation functions. We explained the benefits of this pattern in the Communicating with a SQL database with SQLAlchemy ORM section.
-
-That’s it! We can now make queries to our database!
-
-## Inserting documents
-
-We’ll start by demonstrating how to implement an endpoint to create posts. Essentially, we just have to insert our transformed Pydantic model into a dictionary:
-
-Classically, this is a POST endpoint that accepts a payload in the form of a PostCreate model. Additionally, we inject the database instance with the dependency we wrote earlier.
-
-In the path operation itself, you can see that we start by instantiating a Post from the PostCreate data. This is usually a good practice if you have fields that only appear in Post that need to be initialized.
-
-Then, we have the query. To retrieve a collection in our MongoDB database, we simply have to get it by name, like a dictionary. Once again, MongoDB will take care of creating it if it doesn’t exist. As you can see, document-oriented databases are much more lightweight regarding schema than relational databases! In this collection, we can call the insert_one method to insert a single document. It expects a dictionary to map fields to their values. Therefore, the dict method of Pydantic objects is once again our friend. However, here, we can see something new: we call it with the by_alias argument set to True. By default, Pydantic will serialize the object with the real field name, not the alias name. However, we do need the _id identifier in our MongoDB database. Using this option, Pydantic will use the alias as a key in the dictionary.
-
-To ensure we have a true and fresh representation of our document in the dictionary, we can retrieve one from the database thanks to our get_post_or_404 function. We’ll examine how this works in the next section.
-
-Dependencies are like functions In this section, we used get_post_or_404 as a regular function to retrieve our newly created blog post. This is perfectly okay: dependencies don’t have hidden or magic logic inside them, so you can reuse them at will. The only thing to remember is that you have to provide every argument manually since you are outside of the dependency injection context.
-
-## Getting documents
-
-Of course, retrieving the data from the database is an important part of the job of a REST API. In this section, we’ll demonstrate how to implement two classic endpoints – that is, to list posts and get a single post. Let’s start with the first one and take a look at its implementation:
-
-The most interesting part is the second line, which is where we define the query. After retrieving the posts collection, we call the find method. The first argument should be the filtering query, following the MongoDB syntax. Since we want every document, we leave it empty. Then, we have keyword arguments that allow us to apply our pagination parameters.
-
-MongoDB returns a result in the form of a list of dictionaries, which maps fields to their values. This is why we added a list comprehension construct to transform them back into Post instances – so that FastAPI can serialize them properly.
-
-You might have noticed something quite surprising here: contrary to what we do usually, we didn’t wait for the query directly. Instead, we added the async keyword to our list comprehension. Indeed, in this case, Motor returns an asynchronous generator. It’s the asynchronous counterpart of the classic generator. It works in the same way, aside from the async keyword, which we have to add when iterating over it.
-
-Now, let’s take a look at the endpoint that retrieves a single post. The following example shows its implementation:
-
-As you can see, it’s a simple GET endpoint that accepts the id post as a path parameter. Most of the logic’s implementation is in the reusable get_post_or_404 dependency. You can view what it looks like here:
-
-The logic is quite similar to what we saw for the list endpoint. This time, however, we call the find_one method with a query to match the post identifier: the key is the name of the document attribute we want to filter on, and the value is the one we are looking for.
-
-This method returns the document in the form of a dictionary or None if it doesn’t exist. In this case, we raise a proper 404 error.
-
-Finally, we transform it back into a Post model before returning it.
-
-You might have noticed that we got id through a dependency, get_object_id. Indeed, FastAPI will return a string from the path parameter. If we try to make a query with id in the form of a string, MongoDB will not match with the actual binary IDs. That’s why we use another dependency that transforms the identifier, represented as a string (such as 608d1ee317c3f035100873dc), into a proper ObjectId.
-
-As a side note, here’s a very nice example of nested dependencies: endpoints use the get_post_or_404 dependency, which itself gets a value from get_object_id. You can view the implementation of this dependency in the following example:
-
-Here, we simply retrieve the id string from the path parameters and try to instantiate it back into an ObjectId. If it’s not a valid value, we catch the corresponding errors and consider it a 404 error.
-
-With this, we have solved every challenge posed by the MongoDB identifiers format. Now, let’s discuss how to update and delete documents.
-
-## Updating and deleting documents
-
-We’ll now review the endpoints for updating and deleting documents. The logic is still the same and only involves building the proper query from the request payload.
-
-Let’s start with the PATCH endpoint, which you can view in the following example:
-
-Here, we used the update_one method to update one document. The first argument is the filtering query, while the second one is the actual operation to apply to the document. Once again, it follows the MongoDB syntax: the $set operation allows us to only modify the fields we want to change by passing the update dictionary.
-
-The DELETE endpoint is even simpler; it’s just a single query, as you can see in the following example:
-
-The delete_one method expects the filtering query as the first argument.
-
-That’s it! Of course, here, we’ve only demonstrated the simplest type of query, but MongoDB has a very powerful query language that allows you to do more complex things. If you’re not familiar with this, we recommend that you read the nice introduction from the official documentation: https:// docs.mongodb.com/manual/crud.
-
-## Nesting documents
-
-At the beginning of this chapter, we mentioned that document-based databases, contrary to relational databases, aim to store all the data related to an entity in a single document. In our current example, if we wish to store the comments along with the post, we simply have to add a list where each item is the comment data.
-
-In this section, we’ll implement this behavior. You’ll see that the functioning of MongoDB makes this straightforward.
-
-We’ll start by adding a new comments attribute to our Post model. You can view this in the following example:
-
-This field is simply a list of Comment. We won’t go into the details of the comment models since they are quite straightforward. Notice that we use the list function as the default factory for this attribute. This instantiates an empty list by default when we create a Post without setting any comments.
-
-Now that we have our models, we can implement an endpoint to create a new comment. You can view it in the following example:
-
-As we did before, we nest the endpoints under the path of a single post. Thus, we can reuse get_ post_or_404 to retrieve the post we want to add a comment to if it exists.
-
-Then, we trigger an update_one query: this time, using the $push operation. This is a useful operator for adding elements to a list attribute. Operators that remove elements from a list are also available. You can find a description of every update operator in the official documentation at https:// docs.mongodb.com/manual/reference/operator/update/.
-
-And that’s it! We don’t even have to modify the rest of our code. Because the comments are included in the whole document, we’ll always retrieve them when querying for a post in the database. Besides, our Post model now expects a comments attribute, so Pydantic will take care of serializing them automatically.
-
-That concludes this part regarding MongoDB. You’ve seen that it can be integrated into a FastAPI application very quickly, especially because of its very flexible schema.
+Great! We are now safe from CSRF attacks! Most of the work here is done by the middleware, but it’s interesting to understand how it works under the hood and how it protects your application. Bear in mind, however, that it comes with a drawback: it will break the interactive documentation. Indeed, it’s not designed to retrieve the CSRF token from the cookie and put it in the headers in each request. Unless you plan on authenticating in another way (through a token in a header, for example), you won’t be able to directly call your endpoints in the documentation.
