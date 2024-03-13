@@ -1,159 +1,17 @@
-HTTP is a simple yet powerful technique for sending data to and receiving data from a server. As we’ve seen, the principles of request and response are at the core of this protocol: when developing our API, our goal is to process the incoming request and build a response for the client. Thus, in order to get data from the server, the client always has to initiate a request first. In some contexts, however, this may not be very convenient. Imagine a typical chat application: when a user receives a new message, we would like them to be notified immediately by the server. Working only with HTTP, we would have to make requests every second to check whether new messages had arrived, which would be a massive waste of resources. This is why a new protocol has emerged: WebSocket. The goal of this protocol is to open a communication channel between a client and a server so that they can exchange data in real time, in both directions.
+Occasionally the LLM cannot determine what step to take because its outputs are not correctly formatted to be handled by the output parser. In this case, by default the agent errors. But you can easily control this functionality with handle_parsing_errors! Let’s explore how.
 
+# Error
 
-In this chapter, we’re going to cover the following main topics:
-Understanding the principles of two-way communication with WebSockets
-Creating a WebSocket with FastAPI
-Handling multiple WebSocket connections and broadcasting messages
+In this scenario, the agent will error because it fails to output an Action string (which we’ve tricked it into doing with a malicious input
 
-# Understanding the principles of two-way communication with WebSockets
+# Default error handling
 
-You have probably noticed that the name WebSockets is a direct reference to the traditional concept of sockets in Unix systems. While technically unrelated, they achieve the same goal: to open a communication channel between two applications. As we said in the introduction, HTTP works only on a request-response principle, which makes the implementation of applications that need real-time communication between the client and the server difficult and inefficient.
+Handle errors with Invalid or incomplete response:
 
-WebSockets try to solve that by opening a full-duplex communication channel, meaning that messages can be sent in both directions and possibly at the same time. Once the channel is opened, the server can send messages to the client without having to wait for a request from the client.
+# Custom error message
 
-Even if HTTP and WebSocket are different protocols, WebSockets have been designed to work with HTTP. Indeed, when opening a WebSocket, the connection is first initiated using an HTTP request and then upgraded to a WebSocket tunnel. This makes it compatible out of the box with the traditional ports 80 and 443, which is extremely convenient because we can easily add this feature over existing web servers without the need for an extra process.
+You can easily customize the message to use when there are parsing errors.
 
-WebSockets also share another similarity with HTTP: URIs. As with HTTP, WebSockets are identified through classic URIs, with a host, a path, and query parameters. Furthermore, we also have two schemes: ws (WebSocket) for insecure connections and wss (WebSocket Secure) for SSL-/TLS-encrypted connections.
+# Custom Error Function
 
-Finally, this protocol is well supported in browsers nowadays, and opening a connection with a server involves just a few lines of JavaScript, as we’ll see in this chapter.
-
-However, handling this two-way communication channel is quite different from handling traditional HTTP requests. Since things happen in real time and in both directions, we’ll see that we have to think differently from what we are used to. In FastAPI, the asynchronous nature of the WebSocket implementation will greatly help us in finding our way through that.
-
-# Creating a WebSocket with FastAPI
-
-Thanks to Starlette, FastAPI has built-in support for WebSockets. As we’ll see, defining a WebSocket endpoint is quick and easy, and we’ll be able to get started in minutes. However, things will get more complex as we try to add more features to our endpoint logic. Let’s start simple, with a WebSocket that waits for messages and simply echoes them back.
-
-In the following example, you’ll see the implementation of such a simple case:
-
-The code is quite understandable by itself, but let’s focus on the important parts that differ from classic HTTP endpoints.
-
-First of all, you see that FastAPI provides a special websocket decorator to create a WebSocket endpoint. As with regular endpoints, it takes the path at which it’ll be available as an argument. However, other arguments that don’t make sense in this context, such as the status code or response model, are not available.
-
-Then, in the path operation function, we can inject a WebSocket object, which will provide us with all the methods to work with the WebSocket, as we’ll see.
-
-The first method we are calling in the implementation is accept. This method should be called first as it tells the client that we agree to open the tunnel.
-
-After that, you can see that we start an infinite loop. That’s the main difference with an HTTP endpoint: since we are opening a communication channel, it’ll remain open until the client or the server decides to close it. While it’s open, they can exchange as many messages as they need; hence, the infinite loop is here to remain open and repeat the logic until the tunnel is closed.
-
-Inside the loop, we make the first call to the receive_text method. As you may have guessed, this returns the data sent by the client in plain text format. It’s important here to understand that this method will block until data is received from the client. Until that event, we won’t proceed with the rest of the logic.
-
-We can see here the importance of asynchronous input/output, as we presented in Chapter 2, Python Programming Specificities. By creating an infinite loop waiting for incoming data, we could have blocked the whole server process in a traditional blocking paradigm. Here, thanks to the event loop, the process is able to answer other requests made by other clients while we are waiting for this one.
-
-When data is received, the method returns the text data and we can proceed with the next line. Here, we simply send back the message to the client thanks to the send_text method. Once done, we are going back to the beginning of the loop to wait for another message.
-
-You probably noticed that the whole loop is wrapped inside a try...except statement. This is necessary to handle client disconnection. Indeed, most of the time, our server will be blocked at the receive_text line, waiting for client data. If the client decides to disconnect, the tunnel will be closed and the receive_text call will fail, with a WebSocketDisconnect exception. That’s why it’s important to catch it to break the loop and properly finish the function.
-
-Let’s try it! You can run the FastAPI application, as usual, thanks to the Uvicorn server. Here’s the command you’ll need:
-
-Our client will be a simple HTML page with some JavaScript code to interact with the WebSocket. We’ll quickly go through this code after the demonstration. To run it, we can simply serve it with the built-in Python server, as follows:
-
-Starting several terminals On Linux and macOS, you should be able to simply start a new Terminal by creating a new window or tab. On Windows and WSL, you can also have several tabs if you’re using the Windows terminal application: https://apps.microsoft.com/store/detail/ windows-terminal/9N0DX20HK701.
-Otherwise, you can simply click on the Ubuntu shortcut in your Start menu to start another terminal.
-
-This will serve our HTML page on port 9000 of your local machine. If you open the http:// localhost:9000 address, you’ll see a simple interface like the one shown here:
-
-You have a simple input form, allowing you to send messages to the server through the WebSocket. They appear in green in the list, as seen in the screenshot. The server echoes back your messages, which then appear in yellow in the list.
-
-You can see what’s happening under the hood by opening the Network tab in the developer tools of your browser. Reload the page to force the WebSocket to reconnect. You should then see a row for the WebSocket connection. If you click on it, you’ll see a Messages tab where you can see all the messages passing through the WebSocket. You can see this interface in Figure 8.2.
-
-In the following example, you’ll see the JavaScript code used to open the WebSocket connection and to send and receive messages:
-
-As you can see, modern browsers provide a very simple API to interact with WebSockets. You just have to instantiate a new WebSocket object with the URL of your endpoint and wire some event listeners: open when the connection is ready and message when data is received from the server. Finally, the send method allows you to send data to the server. You can view more details on the WebSocket API in the MDN documentation:
-
-## Handling concurrency
-
-In the previous example, we assumed that the client was always sending a message first: we wait for its message before sending it back. Once again, it’s the client that takes the initiative in the conversation.
-
-However, in usual scenarios, the server can have data to send to the client without being at the initiative. In a chat application, another user can typically send one or several messages that we want to forward to the first user immediately. In this context, the blocking call to receive_text we showed in the previous example is a problem: while we are waiting, the server could have messages to forward to the client.
-
-To solve this, we’ll rely on more advanced tools of the asyncio module. Indeed, it provides functions that allow us to schedule several coroutines concurrently and wait until one of them is complete. In our context, we can have a coroutine that waits for client messages and another one that sends data to it when it arrives. The first one that is fulfilled wins and we can start again with another loop iteration.
-
-To make this clearer, let’s build another example, in which the server will once again echo the message of the client. Besides that, it’ll regularly send the current time to the client. You can see the implementation in the following code snippet:
-
-As you can see, we defined two coroutines: the first one, echo_message, waits for text messages from the client and sends them back, while the second one, send_time, waits for 10 seconds before sending the current time to the client. Both of them expect a WebSocket instance in the argument.
-
-The most interesting part lives under the infinite loop: as you can see, we call our two functions, wrapped by the create_task function of asyncio. This transforms the coroutine into a task object. Under the hood, a task is how the event loop manages the execution of the coroutine. Put more simply, it gives us full control over the execution of the coroutine – we can retrieve its result or even cancel it.
-
-Those task objects are necessary to work with asyncio.wait. This function is especially useful for running tasks concurrently. It expects a set of tasks to run in the first argument. By default, this function will block until all given tasks are completed. However, we can control that thanks to the return_when argument: in our case, we want it to block until one of the tasks is completed, which corresponds to the FIRST_COMPLETED value. The effect is the following: our server will launch the coroutines concurrently. The first one will block waiting for a client message, while the other one will block for 10 seconds. If the client sends a message before 10 seconds have passed, it’ll send the message back and complete. Otherwise, the send_time coroutine will send the current time and complete.
-
-At that point, asyncio.wait will return us two sets: the first one, done, contains a set of completed tasks, while the other one, pending, contains a set of tasks not yet completed.
-
-We want to now go back to the start of the loop to start again. However, we need to first cancel all the tasks that have not been completed; otherwise, they would pile up at each iteration, hence the iteration over the pending set to cancel those tasks.
-
-Finally, we also make an iteration over the done tasks and call the result method on them. This method returns the result of the coroutine but also re-raises an exception that could have been raised inside. This is especially useful for once again handling the disconnection of the client: when waiting for client data, if the tunnel is closed, an exception is raised. Thus, our try...except statement can catch it to properly terminate the function.
-
-If you try this example as we did previously, you’ll see that the server will regularly send you the current time but is also able to echo the messages you send.
-
-This send_time example shows you how you can implement a process to send data to the client when an event happens on the server: new data is available in the database, an external process has finished a long computation, and so on. In the next section, we’ll see how we can properly handle the case of multiple clients sending messages to the server, which then broadcasts them to all the clients.
-
-That’s basically how you can handle concurrency with asyncio’s tools. So far, everyone is able to connect to those WebSocket endpoints without any restriction. Of course, as with classic HTTP endpoints, you’ll likely need to authenticate a user before opening the connection.
-
-## Using dependencies
-
-Just as with regular endpoints, you can use dependencies in WebSocket endpoints. They basically work the same way, as FastAPI is able to adapt its behavior to a WebSocket context.
-
-The only drawback is that can’t use security dependencies, as we showed in Chapter 7, Managing Authentication and Security in FastAPI. Indeed, under the hood, most of them work by injecting the Request object, which only works for HTTP requests (we saw that WebSockets are injected in a WebSocket object instead). Trying to inject those dependencies in a WebSocket context will result in an error.
-
-However, basic dependencies such as Query, Header, or Cookie work transparently. Let’s try them in our next example. In this one, we’ll inject two dependencies, as follows:
-A username query parameter, which we’ll use to greet the user on connection.
-A token cookie, which we’ll compare with a static value to keep the example simple. Of course, a proper strategy would be to have a proper user lookup, as we implemented in Chapter 7, Managing Authentication and Security in FastAPI. If this cookie doesn’t have the required value, we’ll raise an error.
-
-Let’s see the implementation in the following sample:
-
-As you can see, injecting dependencies is no different from standard HTTP endpoints.
-
-Then, we can have our dummy authentication logic. If it fails, we can raise a WebSocketException. It’s the WebSocket equivalent of HTTPException, which we saw in previous sections. Under the hood, FastAPI will handle this exception by closing the WebSocket with the specified status code. WebSockets have their own set of status codes. You can view a complete list of these on this MDN documentation page: https://developer.mozilla.org/fr/docs/Web/API/ CloseEvent. The most generic one when an error occurs is 1008.
-
-If it passes, we can start our classic echo server. Notice that we can use the username value as we wish in our logic. Here, we send a first message to greet the user on connection. If you try this with the HTML application, you’ll see this message first, as shown in the following screenshot:
-
-With the browser WebSocket API, query parameters can be passed into the URL and the browser automatically forwards the cookies. However, there is no way to pass custom headers. This means that if you rely on headers for authentication, you’ll have to either add one using cookies or implement an authentication message mechanism in the WebSocket logic itself. However, if you don’t plan to use your WebSocket with a browser, you can still rely on headers since most WebSocket clients support them.
-
-You now have a good overview of how to add WebSockets to your FastAPI application. As we said, they are generally useful when several users are involved in real time and we need to broadcast messages to all of them. We’ll see in the next section how to implement this pattern reliably.
-
-# Handling multiple WebSocket connections and broadcasting messages
-
-As we said in the introduction to this chapter, a typical use case for WebSockets is to implement real- time communication across multiple clients, such as a chat application. In this configuration, several clients have an open WebSocket tunnel with the server. Thus, the role of the server is to manage all the client connections and broadcast messages to all of them: when a user sends a message, the server has to send it to all other clients in their WebSockets. We show you a schema of this principle here:
-
-A first approach could be simply to keep a list of all WebSocket connections and iterate through them to broadcast messages. This would work but would quickly become problematic in a production environment. Indeed, most of the time, server processes run multiple workers when deployed. This means that instead of having only one process serving requests, we can have several ones so that we can answer more requests concurrently. We could also think of deployments on multiple servers spread over several data centers.
-
-Hence, nothing guarantees you that two clients opening a WebSocket are served by the same process. Our simple approach would fail in this configuration: since connections are kept in the process memory, the process receiving the message would not be able to broadcast the message to clients served by another process. We schematize this problem in the following diagram:
-
-To solve this, we generally rely on message brokers. Message brokers are pieces of software whose role is to receive messages published by a first program and broadcast them to programs that are subscribed to it. Usually, this publish-subscribe (pub-sub) pattern is organized into different channels so that messages are clearly organized following their topic or usage. Some of the best-known message broker software includes Apache Kafka, RabbitMQ, and cloud-based implementations from Amazon Web Services (AWS), Google Cloud Platform (GCP), and Microsoft Azure: Amazon MQ, Cloud Pub/ Sub, and Service Bus, respectively.
-
-Hence, our message broker will be unique in our architecture, and several server processes will connect to it to either publish or subscribe to messages. This architecture is schematized in the following diagram:
-
-In this chapter, we’ll see how to set up a simple system using the broadcaster library from Encode (the creators of Starlette) and Redis, which will act as a message broker.
-
-A word on Redis At its core, Redis is a data store designed to achieve maximum performance. It’s widely used in the industry for storing temporary data that we want to access very quickly, such as caches or distributed locks. It also supports a basic pub/sub paradigm, which makes it a good candidate to be used as a message broker. You can learn more about this technology at its official website: https://redis.io.
-
-First of all, let’s install the library with the following command:
-This library will abstract away all the complexities of publishing and subscribing with Redis for us.
-
-Let’s see the details of the implementation. In the following example, you’ll see the instantiation of the Broadcaster object:
-
-As you can see, it only expects a URL to our Redis server. Notice also that we define a CHANNEL constant. This will be the name of the channel to publish and subscribe to messages. We choose a static value here for the sake of the example, but you could have dynamic channel names in a real-world application—to support several chat rooms, for example.
-
-Then, we define two functions: one to subscribe to new messages and send them to the client and another one to publish messages received in the WebSocket. You can see these functions in the following sample:
-
-First of all, notice that we defined a Pydantic model, MessageEvent, to help us structure the data contained in a message. Instead of just passing raw strings as we’ve been doing up to now, we have an object bearing both the message and the username.
-
-The first function, receive_message, subscribes to the broadcast channel and waits for messages called event. The data of the message contains serialized JSON that we deserialize to instantiate a MessageEvent object. Notice that we use the parse_raw method of the Pydantic model, allowing us to parse the JSON string into an object in one operation.
-
-Then, we check whether the message username is different from the current username. Indeed, since all users are subscribed to the channel, they will also receive the messages they sent themselves. That’s why we discard them based on the username to avoid this. Of course, in a real-world application, you’ll likely want to rely on a unique user ID rather than a simple username.
-
-Finally, we can send the message through the WebSocket thanks to the send_json method, which takes care of serializing the dictionary automatically.
-
-The second function, send_message, is there to publish a message to the broker. Quite simply, it waits for new data in the socket, structures it into a MessageEvent object, and then publishes it.
-
-That’s about it for the broadcaster part. We then have the WebSocket implementation in itself, which is very similar to what we saw in the previous sections. You can see it in the following sample:
-
-Finally, we need to tell FastAPI to open the connection with the broker when it starts the application and to close it when exiting, as you can see in the following extract:
-
-Let’s now try this application! First, we’ll run the Uvicorn server. Be sure that your Redis container is running before starting, as we explained in the Technical requirements section. Here’s the command you’ll need:
-
-We also provided a simple HTML client in the examples. To run it, we can simply serve it with the built-in Python server, as follows:
-
-You can now access it through http://localhost:9000. If you open it twice in your browser, in two different windows, you can see whether the broadcasting is working. Input a username in the first window and click on Connect. Do the same in the second window with a different username. You can now send messages and see that they are broadcast to the other client, as depicted in the following screenshot:
-
-That was a very quick overview of how you can implement broadcasting systems involving message brokers. Of course, we only covered the basics here, and much more complex things can be done with those powerful technologies. Once again, we see that FastAPI gives us access to powerful building bricks without locking us inside specific technologies or patterns: it’s very easy to include new libraries to expand our possibilities.
+You can also customize the error to be a function that takes the error in and outputs a string.
