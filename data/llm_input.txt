@@ -1,17 +1,246 @@
-Occasionally the LLM cannot determine what step to take because its outputs are not correctly formatted to be handled by the output parser. In this case, by default the agent errors. But you can easily control this functionality with handle_parsing_errors! Let’s explore how.
+Building a good application is great, but customers enjoying it is even better. This chapter covers techniques and best practices for deploying your FastAPI application to make it available on the web. Learn how to structure your project for deployment using environment variables and managing dependencies with pip. Three deployment options are discussed: serverless cloud platform, Docker container, and traditional Linux server.
 
-# Error
+In this chapter, covering:
 
-In this scenario, the agent will error because it fails to output an Action string (which we’ve tricked it into doing with a malicious input
+- Setting and using environment variables
+- Managing Python dependencies
+- Deploying a FastAPI application on a serverless platform
+- Deploying a FastAPI application with Docker
+- Deploying a FastAPI application on a traditional server
 
-# Default error handling
+# Setting and using environment variables
 
-Handle errors with Invalid or incomplete response:
+Structure the application to enable reliable, fast, and secure deployments. Key in this process is handling configuration variables like database URL, external API token, debug flag, etc. Handle variables dynamically instead of hardcoding into source code for flexibility.
 
-# Custom error message
+Variables will likely be different in the local environment and in production. The database URL will point to a local database on the computer while developing but will point to a production database in production. Also staging or pre-production environments. If a value needs to be changed, the code must be changed, committed, and deployed again. A convenient mechanism is needed to set those values.
 
-You can easily customize the message to use when there are parsing errors.
+It's unsafe to write sensitive values like database connection strings or API tokens in code, they may be committed to your repository, posing security risks.
 
-# Custom Error Function
+Environment variables are values set in the operating system, not the program.
 
-You can also customize the error to be a function that takes the error in and outputs a string.
+![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/2cd1bd77-b5f7-4d53-bbf8-87a5f5bb2d17/120379e1-ae41-4c5b-aff3-0a6d25026a9c/Untitled.png)
+
+Value can be obtained dynamically from system. During deployment, ensure correct environment variables are set on server. This allows easy value changes without redeploying code and multiple deployments of application with different configurations sharing same source code. Sensitive values in environment variables can still leak if not careful, such as in log files or error stack traces.
+
+Use Pydantic settings management for structuring and using configuration variables like any other data model, automatically retrieving values from environment variables.
+
+Example project is FastAPI application using SQLAlchemy
+
+Example:
+
+- Create a class that inherits from pydantic.BaseSettings to structure a settings model. Example configuration class includes debug flag, environment name, and database URL.
+- Similar to creating a Pydantic model. Default values can be defined
+- Create an instance of the class and import it where needed in the project. Retrieve the database URL to create the SQLAlchemy engine.
+- Use the debug flag to print all settings in the lifespan event at startup.
+- Since application designed work SQLAlchemy, took care initializing database migration environment Alembic. Use settings object dynamically configure database URL; instead hardcoding alembic.ini, set settings [env.py](http://env.py/)
+- Manually remove the aiosqlite driver part of the URL. Alembic is designed to work synchronously, need to pass it a standard URL. We can generate migrations from our development database and apply them in production without changing anything in our Alembic configuration!
+- The Settings model works like a Pydantic model, parsing values from environment variables and raising an error if a value is missing. This ensures no values are forgotten when the app starts.
+- The application started. Lifespan handler printed settings values. Pydantic is case-insensitive when retrieving environment variables. Environment variables are usually set in all caps on the system.
+
+## Using a .env file
+
+Pydantic enables reading values from a .env file, list of environment variables and values.
+
+Install the python-dotenv library to parse .env files.
+
+To enable feature, added Config subclass with env_file property. By doing this, tell Pydantic to look for environment variables set in a file named .env, if available.
+
+Create .env file at project root 
+
+The values will now be read from the .env file. If the file is missing, Settings will try to read them from the environment variables. To ensure you don’t commit this file by accident, add it to your .gitignore file.
+
+Creating hidden files like .env files in Unix systems. Files starting with a dot, such as .env, are considered hidden files. Create them from IDE or command line by executing: touch .env.
+
+Our application supports dynamic configuration variables, easy to set and change on deployment platforms. 
+
+# Managing Python dependencies
+
+When deploying project to new environment, like production server, ensure all dependencies are installed for application to work. Colleagues working on project also need to know dependencies to install on their machines.
+
+pip has a solution for managing Python dependencies through a requirements.txt file at the root of the project.
+
+Run the following command in existing working environment.
+
+```
+pip freeze
+```
+
+The result of pip freeze is a list of every Python package currently installed in your environment, along with their corresponding versions. This list can be directly used in the requirements.txt file.
+
+Issue: It includes all packages, even sub-dependencies, difficult to know which sub-dependencies are installed if you decide to remove a library. Over time, requirements.txt file will accumulate unnecessary dependencies.
+
+Solution: Maintain requirements.txt file. List all libraries and versions. Pip installs sub-dependencies but they won't appear in requirements.txt. Removing dependencies ensures no useless packages are kept.
+
+Example
+
+![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/2cd1bd77-b5f7-4d53-bbf8-87a5f5bb2d17/2bb13de4-4ff2-4f18-8048-20549c18675e/Untitled.png)
+
+The list is shorter. Add new dependencies to requirements.txt manually.
+
+Modern Package managers like Poetry, Pipenv, and Conda solve issues with pip, especially sub-dependency management. Cloud platforms expect a traditional requirements.txt file for dependencies, making these tools not ideal for FastAPI applications.
+
+Commit requirements.txt file with source code. Run command to install dependencies on new computer or server.
+
+![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/2cd1bd77-b5f7-4d53-bbf8-87a5f5bb2d17/774be8d7-900d-411c-ae9b-0fcba4258c5e/Untitled.png)
+
+## Adding Gunicorn as a server process for deployment
+
+WSGI and ASGI protocols define the norm and data structure for building web servers in Python. Django and Flask rely on WSGI, while ASGI is the protocol for developing web servers running asynchronously, used by FastAPI and Starlette.
+
+Uvicorn runs FastAPI applications, accepts HTTP requests, transforms them based on the ASGI protocol, and sends them to the FastAPI application. FastAPI returns an ASGI-compliant response object, which Uvicorn uses to create a correct HTTP response.
+
+In the WSGI world, Gunicorn is the most widely used server with the same role in Django or Flask applications. Gunicorn has refinements and features that make it more robust and reliable in production than Uvicorn, which is designed for WSGI applications.
+
+Gunicorn is a robust process manager for the production server. A special worker class provided by Uvicorn will be specified to run ASGI applications like FastAPI. 
+
+Install Gunicorn to dependencies (add to requirements.txt file).
+
+Run the FastAPI project using Gunicorn with the command.
+
+![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/2cd1bd77-b5f7-4d53-bbf8-87a5f5bb2d17/ec1eb8ec-8328-4422-a42c-97d654c68d12/Untitled.png)
+
+Usage is similar to Uvicorn, specify Uvicorn worker. Use -w option to set number of workers (4 in this case). Gunicorn handles load-balancing between workers, ensuring robustness in case of blocking event loop.
+
+# Deploying FastAPI on serverless platform
+
+Serverless platforms are popular for deploying web applications. They hide server complexity and allow for automatic building and deployment. Google App Engine, Heroku, and Azure App Service are common options. Despite differences, they all operate on the same principles. This section outlines common steps to follow.
+
+Serverless platforms require source code in GitHub repository. Source code structure assumed as GitHub repository.
+
+General steps to deploy projects on a cloud platform:
+
+1. Create an account on a cloud platform of your choice.
+2. Install necessary command-line tools.
+3. Set up application configuration.
+4. Set startup command for FastAPI application on serverless platform.
+5. Set environment variables.
+6. Deploy the application.
+- Most popular cloud providers documentation:
+Google Cloud: https://cloud.google.com/sdk/gcloud
+Microsoft Azure: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
+Heroku: https://devcenter.heroku.com/articles/heroku-cli
+- Application deployment on cloud platforms:
+- Set up environment variables.
+- Deploy the application.
+- Cloud platforms automatically build and deploy Docker containers.
+- Make application available on a generic subdomain.
+- Provide mechanisms for binding to custom domain or subdomain.
+- Relevant documentation pages for custom domains:
+Google App Engine: https://cloud.google.com/appengine/docs/standard/python3/mapping-custom-domains
+Azure App Service: https://docs.microsoft.com/en-us/azure/app-service/manage-custom-dns-migrate-domain
+Heroku: https://devcenter.heroku.com/articles/custom-domains
+
+## Adding database servers
+
+Most applications are backed by a database engine like PostgreSQL. Cloud providers offer fully managed databases billed based on computing power, memory, and storage. Once created, you'll receive a connection string to connect to the database instance. Set it in your application's environment variables. Documentation for managed databases with popular cloud providers
+
+- Google Cloud SQL: https://cloud.google.com/sql/docs/postgres/create-instance
+- Azure Database for PostgreSQL: https://docs.microsoft.com/en-us/azure/postgresql/quickstart-create-server-database-portal
+- Amazon RDS: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_GettingStarted.html
+- Heroku Postgres: https://devcenter.heroku.com/articles/heroku-postgresql
+
+In some situations, more control or system packages not available on serverless platforms may require the use of a Docker container.
+
+# Deploying FastAPI application with Docker
+
+Docker widely used for containerization. Containers are self-contained systems on a computer with all files and configurations for running applications like web servers, database engines, and data processing apps. Goal is to run applications without dependency conflicts.
+
+Docker containers are portable and reproducible. Write a Dockerfile with instructions to build the small system, along with files and configuration. Dockerfile is executed during a build to create a Docker image containing small system. Share this image on registries for others to download and run in a container.
+
+Docker allows multiple projects with different system package versions without worrying about installation on local machine.
+
+Docker is used for deploying applications to production. Builds are reproducible, ensuring consistency between local and production environments.
+
+## Writing Dockerfile
+
+A Dockerfile is a set of instructions for building a Docker image, a self-contained system with all components to run applications. Dockerfiles start from a base image, typically a standard Linux installation like Debian or Ubuntu. Files can be copied into the image from the local machine (often the application's source code) and Unix commands can be executed, such as installing packages or running scripts.
+
+The creator of FastAPI has created a base Docker image that contains all the necessary tools to run a FastAPI app. 
+
+We Start from this image, copy source files, and install dependencies.
+
+Need a working Docker installation on machine.
+
+Create a Docker image by creating a file named Dockerfile at the root of the project. 
+
+Go through each instruction. 
+
+- FROM, base image derived from. Took uvicorn-gunicorn-fastapi image, created by FastAPI creator. Docker images have tags, used to pick specific version of image. Chose Python version 3.10. Many variations exist for this image, including other Python versions. Check official README file: https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker.
+- Set the APP_MODULE environment variable using the ENV instruction in a Docker image. Environment variables can be set at build time or runtime. APP_MODULE should point to the path of your FastAPI application, which is the same argument used in Uvicorn and Gunicorn commands. Check the official README file for the list of accepted environment variables.
+- COPY instruction copies local file system to the image. Copies requirements.txt file. Copied file into the /app directory of image; main working directory defined by base image.
+- RUN statement to execute Unix commands. Ran pip to install dependencies from requirements.txt to ensure all Python dependencies are present.
+- Copies rest of source code files into /app directory. Why copy separately requirements.txt. Docker images built using layers: each instruction creates new layer in build system. To improve performance, Docker does best to reuse layers already built. If detects no changes from previous build, reuse ones in memory without rebuilding them.
+
+Copying requirements.txt file and installing Python dependencies before the rest of the source code allows Docker to reuse the layer where dependencies have been installed. Editing source code without requirements.txt will result in Docker build executing only the last COPY instruction, reusing previous layers and reducing image build time from minutes to seconds.
+
+Dockerfiles typically end with a CMD instruction, specifying the command to execute when the container starts. The base image already includes the necessary Gunicorn command.
+
+## Adding prestart script
+
+When deploying an application, run commands before application starts. Execute database migrations for correct tables and columns in production database. Base Docker image allows creation of [prestart.sh](http://prestart.sh/) bash script. If present, it'll run before FastAPI application starts.
+
+In our case, run the Alembic command to execute migrations.
+
+This is a mechanism provided for convenience by the tiangolo/uvicorn-gunicorn-fastapi image. If starting from a basic image, you'll need to create your own solution for running a prestart script.
+
+## Building a Docker image
+
+# 
+
+Run the following command to build the Docker image from the root of the project.
+
+The dot (.) denotes the path of the root context to build your image – in this case, the current directory. The -t option is here to tag the image and give it a practical name.
+
+Docker performs the build, downloading the base image and sequentially running instructions. This process takes a few minutes. Re-running the command shows how layers are reused if there is no change, resulting in a build that only takes a few seconds.
+
+## Running Docker image
+
+Before deploying to production, run the image locally with the command.
+
+Use the run command with the image name. Options include:
+
+- p to publish ports for local access (e.g., 8000:80)
+- e to set environment variables (e.g., for database configuration)
+Refer to official Docker documentation for more options: https://docs.docker.com/engine/reference/commandline/run/#options.
+
+This command runs the application, accessible through [http://localhost:8000](http://localhost:8000/). Docker shows the logs in the terminal.
+
+## Deploying Docker image
+
+Now with a working Docker image, deploy on any machine running Docker. Use your own server or a dedicated platform. Serverless platforms like Google Cloud Run, Amazon ECS, and Microsoft Azure Container Instances can help deploy container images automatically.
+
+Usually, upload image to registry. Docker pulls/pushes images from Docker Hub. Services/platforms have own registries. Use private cloud registry from cloud platform to deploy. Relevant documentation for private registries with popular cloud providers:
+Google Artifact Registry: https://cloud.google.com/artifact-registry/docs/docker/quickstart
+Amazon ECR: https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-console.html
+Microsoft Azure Container Registry: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli?tabs=azure-cli
+Deploy FastAPI app on traditional server.
+
+If followed relevant instructions, should have private registry for storing Docker images. Instructions probably showed how to authenticate local Docker command line and push first image. Basically, tag image built with path to private registry.
+
+Push it to the registry.
+
+Image stored in cloud platform registry. Use serverless container platform to deploy automatically. Relevant documentation for private registries with popular cloud providers:
+Google Cloud Run: https://cloud.google.com/run/docs/quickstarts/build-and-deploy/python
+Amazon Elastic Container Service: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/getting-started-ecs-ec2.html
+Microsoft Azure Container Instances: https://docs.microsoft.com/en-us/azure/container-instances/container-instances-tutorial-deploy-app
+
+Set environment variables for scalability of containers vertically and horizontally like fully managed apps.
+
+Once done, application will be live on web. Deploying Docker images allows for more flexibility compared to automated serverless platforms.
+
+Deploying a FastAPI application efficiently. Consider manual server setup as an alternative. Guidelines provided in the next section.
+
+# Deploying FastAPI on traditional server
+
+In some situations, not able to use a serverless platform to deploy application. Security or regulatory policies may require deployment on physical servers with specific configurations. Worth knowing basic things to deploy application on traditional servers.
+
+- In this section, consider working on a Linux server:
+1. Ensure a recent version of Python is installed on the server, ideally matching the one used in development. Set up pyenv as shown in Chapter 1.
+2. Clone your Git repository on the server to keep source code in sync with latest developments. Pull changes and restart server process for deployment.
+3. Set up a Python virtual environment as explained in Chapter 1. Install dependencies with pip from requirements.txt.
+4. Run Gunicorn to serve FastAPI application. Consider making improvements.
+5. Use Supervisor as a process manager to keep Gunicorn running and restart it when the server restarts. Put Gunicorn behind an HTTP proxy for SSL connections, load balancing, and serving static files. nginx is recommended for this task, with basic configuration provided in Gunicorn documentation.
+
+In this context, there are many configurations and decisions to make regarding server setup. Pay attention to security and protect against attacks. DigitalOcean tutorial: https://www.digitalocean.com/community/tutorials/recommended-security-measures-to-protect-your-servers.
+
+If not experienced system administrator, recommend favoring serverless platforms; professional teams handle security, system updates, and server scalability, letting focus on developing great application.
