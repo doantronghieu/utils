@@ -1,10 +1,2 @@
-In the previous chapter, you learned how to create efcient REST API endpoints to make predictions 
-with trained machine learning models. Tis approach covers a lot of use cases, given that we have 
-a single observation we want to work on. In some cases, however, we may need to continuously 
-perform predictions on a stream of input – for instance, an object detection system that works in real 
-time with video input. Tis is exactly what we’ll build in this chapter. How? If you remember, besides 
-HTTP endpoints, FastAPI also has the ability to handle WebSockets endpoints, which allow us to 
-send and receive streams of data. In this case, the browser will send into the WebSocket a stream of 
-images from the webcam, and our application will run an object detection algorithm and send back 
-the coordinates and label of each detected object in the image. For this task, we’ll rely on Hugging 
-Face, which is both a set of tools and a library of pretrained AI models
+If we want to have other quantiles on the same graph, we can duplicate this query by clicking on the 
+Duplicate button right above Run queries. Ten, all we have to do is to select another quantile. 
