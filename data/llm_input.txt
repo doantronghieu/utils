@@ -1,2 +1,0 @@
-If we want to have other quantiles on the same graph, we can duplicate this query by clicking on the 
-Duplicate button right above Run queries. Ten, all we have to do is to select another quantile. 
