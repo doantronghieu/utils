@@ -1,0 +1,13 @@
+Chains are great when we know the specific sequence of tool usage needed for any user input. But for certain use cases, how many times we use tools depends on the input. In these cases, we want to let the model itself decide how many times to use tools and in what order. Agents let us do just this.
+
+LangChain comes with a number of built-in agents that are optimized for different use cases. Read about all the agent types here.
+
+As an example, let’s try out the OpenAI tools agent, which makes use of the new OpenAI tool-calling API (this is only available in the latest OpenAI models, and differs from function-calling in that the model can return multiple function invocations at once).
+
+First, we need to create some tool to call. For this example, we will create custom tools from functions. For more information on creating custom tools, please see this guide.
+
+
+
+
+
+
