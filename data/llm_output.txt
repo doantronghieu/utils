@@ -1,0 +1,20 @@
+# Autogen
+
+## Autogen
+- Definition: Autogen is a project by Microsoft that enables the creation of autonomous agents to work together on tasks.
+- Types: Autonomous agents, Framework
+- Usage: Creating multi-agent systems, Enhancing task performance, Integrating with existing projects
+- Benefits: Improved task outcomes, Flexibility in defining agent roles, Seamless integration with open AI API
+- Others: Customizable and conversible agents, Integration with humans and tools, Automated chat conversations
+
+# Multi-Agent Framework
+
+## Multi-Agent Framework
+- Description: A framework that allows multiple agents to collaborate on tasks and communicate with each other.
+- Components: Autonomous agents, User proxy agent, Assistant agent
+- Pipeline: Initiation of chat, Task execution, Error handling, Termination of conversation
+- Implementation: Defining agent roles, Configuring agent interactions, Setting up API endpoints
+- Use Cases: Task solving, Code generation, Debugging, Skill teaching
+- Advantages: Enhanced task performance, Iterative improvement, Human feedback integration
+- Limitations: Potential errors in code execution, Dependency on API availability, Complexity in agent interactions
+
