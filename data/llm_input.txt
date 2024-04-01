@@ -1,6 +1,29 @@
-There are five key stages within RAG, which in turn will be a part of any larger application you build. These are:
-Loading: this refers to getting your data from where it lives -- whether it's text files, PDFs, another website, a database, or an API -- into your pipeline. LlamaHub provides hundreds of connectors to choose from.
-Indexing: this means creating a data structure that allows for querying the data. For LLMs this nearly always means creating vector embeddings, numerical representations of the meaning of your data, as well as numerous other metadata strategies to make it easy to accurately find contextually relevant data.
-Storing: once your data is indexed you will almost always want to store your index, as well as other metadata, to avoid having to re-index it.
-Querying: for any given indexing strategy there are many ways you can utilize LLMs and LlamaIndex data structures to query, including sub-queries, multi-step queries and hybrid strategies.
-Evaluation: a critical step in any pipeline is checking how effective it is relative to other strategies, or when you make changes. Evaluation provides objective measures of how accurate, faithful and fast your responses to queries are.
+The Assistants API allows you to build AI assistants within your own applications. An Assistant has instructions and can leverage models, tools, and knowledge to respond to user queries. The Assistants API currently supports three types of tools: Code Interpreter, Retrieval, and Function calling
+
+You can interact with OpenAI Assistants using OpenAI tools or custom tools. When using exclusively OpenAI tools, you can just invoke the assistant directly and get final answers. When using custom tools, you can run the assistant and tool execution loop using the built-in AgentExecutor or easily write your own executor.
+
+Below we show the different ways to interact with Assistants. As a simple example, let’s build a math tutor that can write and run code.
+
+# Using only OpenAI tools
+
+# As a LangChain agent with arbitrary tools
+
+Now let’s recreate this functionality using our own tools. For this example we’ll use the E2B sandbox runtime tool.
+
+## Using AgentExecutor
+
+The OpenAIAssistantRunnable is compatible with the AgentExecutor, so we can pass it in as an agent directly to the executor. The AgentExecutor handles calling the invoked tools and uploading the tool outputs back to the Assistants API. Plus it comes with built-in LangSmith tracing.
+
+## Custom execution
+
+Or with LCEL we can easily write our own execution loop for running the assistant. This gives us full control over execution.
+
+# Using existing Thread
+
+To use an existing thread we just need to pass the “thread_id” in when invoking the agent.
+
+# Using existing Assistant
+
+To use an existing Assistant we can initialize the OpenAIAssistantRunnable directly with an assistant_id.
+
+
