@@ -1,29 +1,27 @@
-The Assistants API allows you to build AI assistants within your own applications. An Assistant has instructions and can leverage models, tools, and knowledge to respond to user queries. The Assistants API currently supports three types of tools: Code Interpreter, Retrieval, and Function calling
+One challenge with retrieval is that usually you don’t know the specific queries your document storage system will face when you ingest data into the system. This means that the information most relevant to a query may be buried in a document with a lot of irrelevant text. Passing that full document through your application can lead to more expensive LLM calls and poorer responses.
 
-You can interact with OpenAI Assistants using OpenAI tools or custom tools. When using exclusively OpenAI tools, you can just invoke the assistant directly and get final answers. When using custom tools, you can run the assistant and tool execution loop using the built-in AgentExecutor or easily write your own executor.
+Contextual compression is meant to fix this. The idea is simple: instead of immediately returning retrieved documents as-is, you can compress them using the context of the given query, so that only the relevant information is returned. “Compressing” here refers to both compressing the contents of an individual document and filtering out documents wholesale.
 
-Below we show the different ways to interact with Assistants. As a simple example, let’s build a math tutor that can write and run code.
+To use the Contextual Compression Retriever, you’ll need: - a base retriever - a Document Compressor
 
-# Using only OpenAI tools
+The Contextual Compression Retriever passes queries to the base retriever, takes the initial documents and passes them through the Document Compressor. The Document Compressor takes a list of documents and shortens it by reducing the contents of documents or dropping documents altogether.
 
-# As a LangChain agent with arbitrary tools
+## Adding contextual compression with an LLMChainExtractor
 
-Now let’s recreate this functionality using our own tools. For this example we’ll use the E2B sandbox runtime tool.
+Now let’s wrap our base retriever with a ContextualCompressionRetriever. We’ll add an LLMChainExtractor, which will iterate over the initially returned documents and extract from each only the content that is relevant to the query.
 
-## Using AgentExecutor
+## More built-in compressors: filters
 
-The OpenAIAssistantRunnable is compatible with the AgentExecutor, so we can pass it in as an agent directly to the executor. The AgentExecutor handles calling the invoked tools and uploading the tool outputs back to the Assistants API. Plus it comes with built-in LangSmith tracing.
+### LLMChainFilter
 
-## Custom execution
+The LLMChainFilter is slightly simpler but more robust compressor that uses an LLM chain to decide which of the initially retrieved documents to filter out and which ones to return, without manipulating the document contents.
 
-Or with LCEL we can easily write our own execution loop for running the assistant. This gives us full control over execution.
+### EmbeddingsFilter
 
-# Using existing Thread
+Making an extra LLM call over each retrieved document is expensive and slow. The EmbeddingsFilter provides a cheaper and faster option by embedding the documents and query and only returning those documents which have sufficiently similar embeddings to the query.
 
-To use an existing thread we just need to pass the “thread_id” in when invoking the agent.
+## Stringing compressors and document transformers together
 
-# Using existing Assistant
+Using the DocumentCompressorPipeline we can also easily combine multiple compressors in sequence. Along with compressors we can add BaseDocumentTransformers to our pipeline, which don’t perform any contextual compression but simply perform some transformation on a set of documents. For example TextSplitters can be used as document transformers to split documents into smaller pieces, and the EmbeddingsRedundantFilter can be used to filter out redundant documents based on embedding similarity between documents.
 
-To use an existing Assistant we can initialize the OpenAIAssistantRunnable directly with an assistant_id.
-
-
+Below we create a compressor pipeline by first splitting our docs into smaller chunks, then removing redundant documents, and then filtering based on relevance to the query.
