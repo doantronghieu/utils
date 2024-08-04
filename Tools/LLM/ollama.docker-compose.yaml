@@ -1,0 +1,28 @@
+services:
+
+  # https://hub.docker.com/r/ollama/ollama
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    volumes:
+    - ollama:/root/.ollama
+    ports:
+    - "11434:11434"
+    environment:
+      OLLAMA_HOST: 0.0.0.0
+      OLLAMA_ORIGINS: '*'
+   
+    networks:
+    - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+
+
+volumes:
+  ollama:
+
+# docker compose -f ollama.docker-compose.yaml up -d 
+# docker compose -f ollama.docker-compose.yaml down

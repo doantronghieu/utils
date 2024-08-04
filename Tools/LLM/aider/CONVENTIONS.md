@@ -1,0 +1,108 @@
+# Coding Guidelines
+
+- Prefer httpx over requests for making http requests
+- Use types everywhere possible
+- Consistent naming conventions
+- Clear and meaningful variable/function names
+- Proper indentation and formatting
+- Code comments and documentation
+- DRY (Don't Repeat Yourself) principle
+- SOLID principles for object-oriented design
+- Error handling and input validation
+- Version control usage
+- Code modularization
+- Consistent file and folder structure
+- Keep functions small and focused (single responsibility)
+- Avoid deep nesting
+- Use meaningful constants instead of magic numbers
+- Follow language-specific style guides
+- Write self-documenting code
+- Proper use of whitespace for readability
+- Consistent use of braces and parentheses
+- Avoid global variables
+- Use appropriate data structures
+- Implement proper exception handling
+- Write unit tests
+- Use meaningful commit messages in version control
+- Avoid premature optimization
+- Use design patterns appropriately
+- Consistent file naming conventions
+- Code reviews and peer programming
+- Continuous integration and continuous deployment (CI/CD)
+- Proper logging and debugging practices
+- Use of linters and static code analysis tools
+- Follow security best practices (e.g., input sanitization, avoiding SQL injection)
+- Consistent error messages and error codes
+- Proper memory management (in languages without garbage collection)
+- Use of dependency injection for better testability
+- Avoid hardcoding configuration values
+- Consistent API design and documentation
+- Use of appropriate design patterns
+- Performance optimization where necessary
+- Proper use of asynchronous programming techniques
+- Code refactoring and technical debt management
+- Internationalization and localization considerations
+- Use of code profiling tools for performance analysis
+- Implement proper concurrency and thread safety measures
+- Follow the principle of least privilege in security design
+- Use semantic versioning for software releases
+- Implement feature flags for easier deployment and testing
+- Adhere to RESTful principles in API design
+- Use of design by contract methodology
+- Implement proper database indexing and query optimization
+- Follow accessibility guidelines in user interface code
+- Use of code generators where appropriate
+- Implement proper caching strategies
+- Use of dependency management tools
+- Follow the boy scout rule: "Leave the code better than you found it"
+- Implement proper error boundaries in component-based architectures
+- Use of trunk-based development in version control
+- Implement chaos engineering principles for robust systems
+- Use of domain-driven design (DDD) in complex business applications
+- Implement event-driven architecture where appropriate
+- Apply the strangler fig pattern for legacy system refactoring
+- Use of blue-green deployments for zero-downtime releases
+- Implement proper rate limiting and throttling in APIs
+- Use of circuit breakers for fault-tolerant distributed systems
+- Apply CQRS (Command Query Responsibility Segregation) pattern when beneficial
+- Implement proper data partitioning and sharding strategies
+- Use of feature toggles for A/B testing and gradual rollouts
+- Implement proper observability (metrics, logging, tracing)
+- Use of database migrations for schema version control
+- Apply the principle of idempotency in distributed systems
+- Implement proper data backup and disaster recovery strategies
+- Use of canary releases for risk mitigation in deployments
+- Implement serverless architecture patterns where applicable
+- Use of event sourcing for systems requiring full audit trails
+- Apply polyglot persistence for optimized data storage
+- Implement proper data anonymization and pseudonymization techniques
+- Use of service mesh in microservices architecture
+- Apply GitOps principles for infrastructure as code
+- Implement zero-trust security model in system design
+- Use of immutable infrastructure for consistent deployments
+- Apply GDPR and other data protection regulations in code design
+- Implement proper data lineage tracking in data-intensive applications
+- Use of chaos monkey and similar tools for resilience testing
+- Apply domain-specific languages (DSLs) for complex domain modeling
+- Implement proper data masking for sensitive information
+- Use of contract testing in microservices environments
+- Apply event streaming patterns for real-time data processing
+- Implement quantum-resistant cryptography for future-proofing security
+- Use of homomorphic encryption for privacy-preserving computations
+- Apply federated learning techniques in AI/ML systems
+- Implement differential privacy in data analysis pipelines
+- Use of formal verification methods for critical systems
+- Apply edge computing patterns for latency-sensitive applications
+- Implement digital twin architecture for IoT systems
+- Use of blockchain for immutable audit trails where appropriate
+- Apply confidential computing techniques for sensitive data processing
+- Implement fog computing patterns for distributed IoT networks
+- Use of neuromorphic computing principles in AI hardware integration
+- Apply swarm programming concepts in distributed systems
+- Implement zero-knowledge proofs for privacy-preserving authentication
+- Use of software-defined networking (SDN) in network-intensive applications
+- Implement bio-inspired computing algorithms for complex optimization problems
+- Apply topological data analysis for high-dimensional data processing
+- Use of DNA computing principles in molecular-scale information processing
+- Implement holographic memory systems for ultra-high-density data storage
+- Apply quantum annealing techniques for specialized optimization problems

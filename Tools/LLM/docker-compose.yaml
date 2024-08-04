@@ -1,0 +1,45 @@
+services:
+
+  opendevin:
+    image: ghcr.io/opendevin/opendevin:0.6.2
+    container_name: opendevin
+    environment:
+      - SANDBOX_USER_ID=${UID}
+      - WORKSPACE_MOUNT_PATH=${WORKSPACE_BASE}
+    volumes:
+      - ${WORKSPACE_BASE}:/opt/workspace_base
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    pull_policy: always
+    stdin_open: true
+    tty: true
+
+  # https://hub.docker.com/r/ollama/ollama
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   restart: always
+  #   volumes:
+  #   - ollama:/root/.ollama
+  #   ports:
+  #   - "11434:11434"
+  #   environment:
+  #     OLLAMA_HOST: 0.0.0.0
+  #     OLLAMA_ORIGINS: '*'
+   
+  #   networks:
+  #   - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+
+
+# volumes:
+#   ollama:
+
+# docker compose -f docker-compose.yaml up -d 
+# docker compose -f docker-compose.yaml down
